@@ -42,8 +42,9 @@ public class Road : MonoBehaviour {
 
     Dictionary<Node[],Segment> nodesToSegment;
 
-    public void GenerateNodeSegments() {
-
+    public void GenerateNodeSegments()
+    {
+        if (nodePairs.Count == 0) return;
         foreach (var pair in nodePairs) {
             if (!nodesToSegment.ContainsKey(pair)) {
                 Segment segment = new Segment(pair[0], pair[1], GetComponent<Road>());
@@ -58,12 +59,12 @@ public class Road : MonoBehaviour {
         }
     }
 
-
     public void AddNode() {
-        Node newNode = Instantiate(node_prefab) as Node;
+        Node newNode = Instantiate(node_prefab);
         nodes.Add(newNode);
+        NodeMap.instance.AddIntersection(newNode, self, self);
         if (nodes.Count > 1) {
-            newNode.transform.position = nodes[nodes.Count - 1].transform.position;
+            //newNode.transform.position = nodes[nodes.Count - 1].transform.position;
             nodePairs.Add(new Node[] { nodes[nodes.Count - 2], newNode });
             //Debug.Log("added pair");
         }
@@ -72,7 +73,7 @@ public class Road : MonoBehaviour {
         //transform.parent.GetComponent<NodeMap>().PopulateNodeMap();
     }
 
-    void NewSegment(Node _node) {
+    private void NewSegment(Node node) {
 
     }
 

@@ -16,6 +16,13 @@ public class NodeMap : MonoBehaviour {
 	void Start () {
 	}
 
+    private static NodeMap _nodeMap;
+
+    public static NodeMap instance
+    {
+        get { return _nodeMap ?? (_nodeMap = GameObject.Find("Roads").GetComponent<NodeMap>()); }
+    }
+
     public Intersection intersectionPrefab;
     List<Vector3> UpdatedIntersectionPositions;
 
@@ -32,6 +39,21 @@ public class NodeMap : MonoBehaviour {
         if(seg2 != null) seg2.AddIntersection(intersection);
         intersection.Init(new List<Segment> { seg1, seg2 });
     }
+    public void AddIntersection(Node node, Road road1, Road road2, Segment seg1 = null, Segment seg2 = null) {
+        UpdatedIntersectionPositions.Add(node.pos());
+        if (CheckForIntersection(node.pos())) return;
+        Intersection intersection = Instantiate(intersectionPrefab, transform);
+        intersection.transform.position = node.pos();
+        intersection.transform.name = road1.roadName + " and " + road2.roadName;
+        intersection.transform.parent = node.transform;
+        intersections.Add(intersection);
+        if (!road1.intersections.Contains(intersection)) road1.intersections.Add(intersection);
+        if (!road2.intersections.Contains(intersection)) road2.intersections.Add(intersection);
+        if (seg1 != null) seg1.AddIntersection(intersection);
+        if (seg2 != null) seg2.AddIntersection(intersection);
+        intersection.Init(new List<Segment> { seg1, seg2 });
+    }
+
 
     public void RemoveIntersection(Intersection _intersection) {
         intersections.Remove(_intersection);
