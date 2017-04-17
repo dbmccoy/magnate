@@ -1,19 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEditor;
 
+//[System.Serializable]
 public class NodeMap : MonoBehaviour {
 
     public Road[] roads;
     public List<Segment> nodeSegments;
-    public List<Intersection> intersections;
+    public List<Node> nodes;
     public List<string> possibleStreetNames;
     public List<string> currentStreetNames;
-    //public List<Node> allNodes;
+    public Node node_prefab;
+    //public List<NewNode> allNodes;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
 	}
 
     private static NodeMap _nodeMap;
@@ -22,42 +25,29 @@ public class NodeMap : MonoBehaviour {
     {
         get { return _nodeMap ?? (_nodeMap = GameObject.Find("Roads").GetComponent<NodeMap>()); }
     }
-
-    public Intersection intersectionPrefab;
+    
     List<Vector3> UpdatedIntersectionPositions;
 
-    public void AddIntersection(Vector3 pos, Road road1, Road road2, Segment seg1 = null, Segment seg2 = null) {
-        UpdatedIntersectionPositions.Add(pos);
-        if (CheckForIntersection(pos)) return;
-        Intersection intersection = Instantiate(intersectionPrefab, transform);
-        intersection.transform.position = pos;
-        intersection.transform.name = road1.roadName + " and " + road2.roadName;
-        intersections.Add(intersection);
-        if(!road1.intersections.Contains(intersection)) road1.intersections.Add(intersection);
-        if(!road2.intersections.Contains(intersection)) road2.intersections.Add(intersection);
-        if(seg1 != null) seg1.AddIntersection(intersection);
-        if(seg2 != null) seg2.AddIntersection(intersection);
-        intersection.Init(new List<Segment> { seg1, seg2 });
-    }
-    public void AddIntersection(Node node, Road road1, Road road2, Segment seg1 = null, Segment seg2 = null) {
+    public void AddIntersection(Node node, Road road1, Road road2, Segment seg1 = null, Segment seg2 = null, bool coerce = false, Node.Type type = Node.Type.turn) {
         UpdatedIntersectionPositions.Add(node.pos());
-        if (CheckForIntersection(node.pos())) return;
-        Intersection intersection = Instantiate(intersectionPrefab, transform);
-        intersection.transform.position = node.pos();
-        intersection.transform.name = road1.roadName + " and " + road2.roadName;
-        intersection.transform.parent = node.transform;
-        intersections.Add(intersection);
-        if (!road1.intersections.Contains(intersection)) road1.intersections.Add(intersection);
-        if (!road2.intersections.Contains(intersection)) road2.intersections.Add(intersection);
-        if (seg1 != null) seg1.AddIntersection(intersection);
-        if (seg2 != null) seg2.AddIntersection(intersection);
-        intersection.Init(new List<Segment> { seg1, seg2 });
+        if (type == Node.Type.intersection && CheckForIntersection(node.pos())) return;
+        //Intersection intersection = Instantiate(intersectionPrefab, transform);
+        
+        //intersection.transform.position = node.pos();
+        node.transform.name = road1.roadName + " and " + road2.roadName;
+        //intersection.transform.parent = node.transform;
+        nodes.Add(node);
+        if (!road1.nodes.Contains(node)) road1.nodes.Add(node);
+        if (!road2.nodes.Contains(node)) road2.nodes.Add(node);
+        if (seg1 != null) seg1.AddIntersection(node);
+        if (seg2 != null) seg2.AddIntersection(node);
+        node.Init(new List<Segment> { seg1, seg2 });
     }
 
 
-    public void RemoveIntersection(Intersection _intersection) {
-        intersections.Remove(_intersection);
-        DestroyImmediate(_intersection.gameObject);
+    public void RemoveIntersection(Node node) {
+        nodes.Remove(node);
+        DestroyImmediate(node.gameObject);
     }
 
     [InspectorButton("GenerateBlockRoads")]
@@ -91,6 +81,12 @@ public class NodeMap : MonoBehaviour {
         RoadName(newRoad.GetComponent<Road>());
     }
 
+    public Node NewNode(Vector3 pos) {
+        Node newNode = Instantiate(node_prefab);
+        newNode.transform.position = pos;
+        return newNode;
+    }
+
     Road ReturnRoad() {
         GameObject newRoad = Instantiate(Resources.Load("road"), transform) as GameObject;
         Selection.activeObject = newRoad;
@@ -111,33 +107,34 @@ public class NodeMap : MonoBehaviour {
     }
 
     void CleanUpIntersections() {
-        List<Intersection> intersectionsToRemove = new List<Intersection>();
-        foreach (var item in intersections) {
+        List<Node> intersectionsToRemove = new List<Node>();
+        foreach (var item in nodes) {
             if (!UpdatedIntersectionPositions.Contains(item.transform.position)) {
                 intersectionsToRemove.Add(item);
             }
         }
         foreach (var item in intersectionsToRemove) {
-            RemoveIntersection(item);
+            if(item.type == global::Node.Type.intersection) {
+                RemoveIntersection(item);
+            }
         }
         intersectionsToRemove.Clear();
         UpdatedIntersectionPositions.Clear();
     }
 
     bool CheckForIntersection(Vector3 pos) {
-        if (intersections.Count == 0) return false;
-        foreach (var item in intersections) {
+        if (nodes.Count == 0) return false;
+        foreach (var item in nodes) {
             if(item.transform.position == pos) {
-               // Debug.Log("intersection already exists");
+                //Debug.Log("intersection already exists");
                 return true;
             }
         }
         //Debug.Log("intersection position open");
         return false;
     }
-	
-	// Update is called once per frame
-	public void PopulateNodeMap () {
+
+    public void PopulateNodeMap() {
         roads = GetComponentsInChildren<Road>();
         Vector3 road1start, road1end, road2start, road2end, road1vec, road2vec;
         nodeSegments = new List<Segment>();
@@ -153,18 +150,24 @@ public class NodeMap : MonoBehaviour {
                                 road1vec = roads[i].segments[j].vector();
                                 if (!nodeSegments.Contains(roads[i].segments[j])) {
                                     nodeSegments.Add(roads[i].segments[j]);
-                                    Debug.DrawLine(roads[i].segments[j].start(),roads[i].segments[j].end(), Color.red);
+                                    Debug.DrawLine(roads[i].segments[j].start(), roads[i].segments[j].end(), Color.red);
                                 }
                                 road2start = roads[k].segments[t].start();
                                 road2end = roads[k].segments[t].end();
                                 road2vec = roads[k].segments[t].vector();
-                               
+
                                 if (Math3d.AreLineSegmentsCrossing(road1start, road1end, road2start, road2end)) {
                                     Vector3 intersection;
                                     Math3d.LineLineIntersection(out intersection, road1start, road1vec, road2start, road2vec);
-
-                                    AddIntersection(intersection, roads[i], roads[k],roads[i].segments[j],roads[k].segments[t]);
-
+                                    if (CheckForIntersection(intersection) == false) {
+                                        Node node = NewNode(intersection);
+                                        node.transform.parent = roads[i].transform;
+                                        Segment seg1 = roads[i].segments[j];
+                                        Segment seg2 = roads[k].segments[t];
+                                        AddIntersection(node, roads[i], roads[k], seg1, seg2, type: Node.Type.intersection);
+                                        roads[i].SplitSegment(seg1,node);
+                                        roads[k].SplitSegment(seg2,node);
+                                    } 
                                 }
                             }
                         }
@@ -172,9 +175,12 @@ public class NodeMap : MonoBehaviour {
                 }
             }
         }
-        Debug.Log(nodeSegments.Count + " road nodes in NodeMap");
+        //Debug.Log(nodeSegments.Count + " road nodes in NodeMap");
         CleanUpIntersections();
     }
+
+
+
     [InspectorButton("OnButtonClicked")]
     public bool update;
 
@@ -187,5 +193,20 @@ public class NodeMap : MonoBehaviour {
 
     private void AddRoadButton() {
         AddRoad();
+    }
+
+    [InspectorButton("ResetRoads")]
+    public bool reset;
+
+
+
+    private void ResetRoads() {
+        for (int i = 0; i < transform.childCount; i++) {
+            DestroyImmediate(transform.GetChild(i).gameObject);
+            nodes.Clear();
+            currentStreetNames.Clear();
+            nodeSegments.Clear();
+            roads = new Road[0];
+        }
     }
 }

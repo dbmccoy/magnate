@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Segment {
     
     public Node startNode;
     public Node endNode;
-    public List<Intersection> intersections = new List<Intersection>();
+    public List<Node> nodes = new List<Node>();
+    public int intersectionCount;
     public Road road;
 
     public Segment(Node _startNode, Node _endNode) {
@@ -20,10 +22,11 @@ public class Segment {
         road = _road;
     }
 
-    public void AddIntersection(Intersection _intersection) {
-        if (!intersections.Contains(_intersection)) {
-            intersections.Add(_intersection);
-            Debug.Log(road.roadName+" "+_intersection.transform.name);
+    public void AddIntersection(Node _node) {
+        if (!nodes.Contains(_node)) {
+            nodes.Add(_node);
+            intersectionCount = nodes.Count;
+            //Debug.Log(road.roadName+" "+_node.transform.name);
         }
     }
 

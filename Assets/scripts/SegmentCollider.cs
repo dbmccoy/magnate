@@ -8,23 +8,31 @@ public class SegmentCollider : MonoBehaviour {
     public Segment segment;
     public Vector3 start;
     public Vector3 end;
+    private LineRenderer line;
     int segmentNumber;
     BoxCollider col;
     Road road;
 
-	// Use this for initialization
-	public void Init (Segment _segment, Road _road) {
+    void Awake () {
+	    line = GetComponent<LineRenderer>();
+    }
+
+    // Use this for initialization
+    public void Init (Segment _segment, Road _road) {
         segment = _segment;
         //segmentNumber = num;
         road = _road;
-        col = this.gameObject.AddComponent<BoxCollider>();
+        GameObject colObj = new GameObject();
+        colObj.transform.parent = transform;
+        col = colObj.AddComponent<BoxCollider>();
+        col.transform.parent = transform;
         col.isTrigger = true;
         col.GetComponent<BoxCollider>().isTrigger = true;
         col.transform.tag = "nodeSegment";
-        start = segment.start();
-        end = segment.end();
-        UpdateCollider();
-    }
+        //start = segment.start();
+        //end = segment.end();
+        //UpdateCollider();
+	}
 	
 	// Update is called once per frame
 	void Update () {
@@ -41,11 +49,15 @@ public class SegmentCollider : MonoBehaviour {
         //Debug.Log(segment.road.name);
         start = segment.start();
         end = segment.end();
+        if(line == null) line = GetComponent<LineRenderer>();
+        line.SetPosition(0,start);
+        line.SetPosition(1,end);
 
         float lineLength = Vector3.Distance(start, end); // length of line
         //Debug.Log(segment.road.roadName);
         col.size = new Vector3(lineLength, 0.1f, 1f); // size of collider is set where X is length of line, Y is width of line, Z will be set as per requirement
-        Vector3 midPoint = (start + end) / 2;
+        Vector3 offset = new Vector3(.5f, 0, 0);
+        Vector3 midPoint = ((start) + (end)) / 2f;
         col.transform.position = midPoint; // setting position of collider object
         // Following lines calculate the angle between startPos and endPos
         if(lineLength > .1f) {

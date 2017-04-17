@@ -9,10 +9,10 @@ public class Ed_Btn_Node : Editor {
         DrawDefaultInspector();
 
         Node myScript = (Node)target;
-        if (GUILayout.Button("Add Node")) {
+        if (GUILayout.Button("Add NewNode")) {
             myScript.AddNode();
         }
-        if (GUILayout.Button("Remove Node")) {
+        if (GUILayout.Button("Remove NewNode")) {
             myScript.RemoveNode();
         }
     }

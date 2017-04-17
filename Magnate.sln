@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magnate", "Magnate.csproj", "{1375BE48-A554-7344-1825-A4502BBC71DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magnate.Editor", "Magnate.Editor.csproj", "{56FCA5E0-1C97-335D-8CAD-6FCDE56DBCC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{1375BE48-A554-7344-1825-A4502BBC71DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1375BE48-A554-7344-1825-A4502BBC71DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1375BE48-A554-7344-1825-A4502BBC71DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56FCA5E0-1C97-335D-8CAD-6FCDE56DBCC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56FCA5E0-1C97-335D-8CAD-6FCDE56DBCC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56FCA5E0-1C97-335D-8CAD-6FCDE56DBCC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56FCA5E0-1C97-335D-8CAD-6FCDE56DBCC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

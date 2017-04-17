@@ -9,7 +9,7 @@ public class ObjectBuilderEditor : Editor {
         DrawDefaultInspector();
 
         Road myScript = (Road)target;
-        if (GUILayout.Button("Add Node")) {
+        if (GUILayout.Button("Add NewNode")) {
             myScript.AddNode();
         }
     }

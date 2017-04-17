@@ -5,7 +5,7 @@ using UnityEditor;
 using System.Linq;
 
 [ExecuteInEditMode]
-[System.Serializable]
+//[System.Serializable]
 public class Road : MonoBehaviour {
 
     public List<Node> nodes;
@@ -14,7 +14,7 @@ public class Road : MonoBehaviour {
     List<SegmentCollider> segmentCols;
     public List<Node[]> nodePairs;
     public Dictionary<Segment, SegmentCollider> segmentToCol;
-    public List<Intersection> intersections;
+    //public List<Intersection> intersections;
     public LineRenderer line;
     public bool isActiveInEditor;
     public Node node_prefab;
@@ -28,11 +28,12 @@ public class Road : MonoBehaviour {
         self = GetComponent<Road>();
         segmentCols = new List<SegmentCollider>();
         segments = new List<Segment>();
-        nodePairs = new List<Node[]>();
+        if(nodePairs == null) nodePairs = new List<Node[]>();
         nodesToSegment = new Dictionary<Node[], Segment>();
         segmentToCol = new Dictionary<Segment, SegmentCollider>();
         AddNode();
         AddNode();
+        GenerateNodeSegments();
 	}
 
     public void NameRoad(string n) {
@@ -44,25 +45,38 @@ public class Road : MonoBehaviour {
 
     public void GenerateNodeSegments()
     {
+        //Debug.Log("now I won't null ref!");
         if (nodePairs.Count == 0) return;
         foreach (var pair in nodePairs) {
             if (!nodesToSegment.ContainsKey(pair)) {
                 Segment segment = new Segment(pair[0], pair[1], GetComponent<Road>());
                 nodesToSegment.Add(pair, segment);
-                segments.Add(segment);
-                //add collider
-                SegmentCollider segmentCol = Instantiate(segmentPrefab, transform);
-                segmentToCol.Add(segment, segmentCol);
-                if (!segmentCols.Contains(segmentCol)) segmentCols.Add(segmentCol);
-                segmentCol.Init(segment, self);
+                AddSegment(segment);
             }
         }
     }
 
+    public void SplitSegment(Segment segment, Node node) {
+        Node start = segment.startNode;
+        Node end = segment.endNode;
+        segment.endNode = node;
+        Segment newSegment = new Segment(node, end);
+        AddSegment((newSegment));
+    }
+
+    public void AddSegment(Segment segment) {
+        segments.Add(segment);
+        SegmentCollider segmentCol = Instantiate(segmentPrefab, transform);
+        segmentToCol.Add(segment, segmentCol);
+        if (!segmentCols.Contains(segmentCol)) segmentCols.Add(segmentCol);
+        segmentCol.Init(segment, self);
+    }
+
     public void AddNode() {
+        Debug.Log("add node");
         Node newNode = Instantiate(node_prefab);
         nodes.Add(newNode);
-        NodeMap.instance.AddIntersection(newNode, self, self);
+        NodeMap.instance.AddIntersection(newNode, self, self, coerce: true);
         if (nodes.Count > 1) {
             //newNode.transform.position = nodes[nodes.Count - 1].transform.position;
             nodePairs.Add(new Node[] { nodes[nodes.Count - 2], newNode });
@@ -71,10 +85,6 @@ public class Road : MonoBehaviour {
         newNode.transform.SetParent(transform);
         Selection.activeObject = newNode;
         //transform.parent.GetComponent<NodeMap>().PopulateNodeMap();
-    }
-
-    private void NewSegment(Node node) {
-
     }
 
     public void RemoveNode(Node n) {
@@ -106,8 +116,8 @@ public class Road : MonoBehaviour {
             for (int i = 0; i < nodes.Count; i++) {
                 points_v[i] = nodes[i].transform.position;
             }
-            line.SetPositions(points_v);
-            GenerateNodeSegments();
+            //line.SetPositions(points_v);
+            //GenerateNodeSegments();
             segmentCols.ForEach(i => i.UpdateCollider());
         }
     }

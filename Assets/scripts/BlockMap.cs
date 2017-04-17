@@ -8,7 +8,7 @@ public class BlockMap : MonoBehaviour {
     public NodeMap nodeMap;
     public Block blockPrefab;
     public List<Block> blocks;
-    List<Intersection> intersections;
+    List<Node> nodes;
     List<Segment> nodeSegments;
     public GameObject indicatorPrefab;
 
@@ -19,7 +19,7 @@ public class BlockMap : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        intersections = nodeMap.intersections;
+        nodes = nodeMap.nodes;
     }
 
     private static BlockMap _blockMap;
@@ -56,7 +56,7 @@ public class BlockMap : MonoBehaviour {
             Ray ray = new Ray(pos, vec);
             if (Physics.Raycast(ray, out hit, distance) && hit.transform.tag == "nodeSegment") {
                 //Instantiate(indicatorPrefab, hit.point, Quaternion.identity, transform); //instantiate hit indicator (debug)
-                boundingSegments.Add(ReturnBoundingSegment(pos, hit.point, hit.transform.parent.GetComponent<Road>()));
+                boundingSegments.Add(hit.transform.parent.GetComponent<SegmentCollider>().segment);
             }
         }
         if(boundingSegments.Count > 2) {

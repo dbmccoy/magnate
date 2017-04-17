@@ -2,75 +2,74 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEditorInternal;
 
+//[System.Serializable]
 public class Block: MonoBehaviour {
 
     List<Segment> boundingSegments = new List<Segment>();
-    List<Intersection> intersections = new List<Intersection>();
+    List<Node> nodes = new List<Node>();
     public List<Road> boundingRoads;
     public List<Vector3> verts = new List<Vector3>();
     Mesh mesh;
+    private MeshFilter filter;
+    private MeshRenderer renderer;
     
     public void InitBlock(List<Segment> _boundingSegments) {
         foreach (var item in _boundingSegments) {
             if (!boundingSegments.Contains(item)) {
                 boundingSegments.Add(item);
-                item.intersections.ForEach(i => Debug.Log(i.transform.name));              
+                //item.nodes.ForEach(i => Debug.Log(i.transform.name));              
             }
         }
         //Debug.Log(boundingSegments.Count);
-        //boundingSegments.Where(i => !verts.Contains(i.start())).ToList().ForEach(j => verts.Add(j.intersections[0].transform.position));
+        //boundingSegments.Where(i => !verts.Contains(i.start())).ToList().ForEach(j => verts.Add(j.nodes[0].transform.position));
+
         foreach (var seg in boundingSegments) {
-            foreach (var inter in seg.intersections) {
-                bool match = true;
-                foreach (var inter_seg in inter.segments) {
-                    if (!boundingSegments.Contains(inter_seg)) {
-                        match = false;
-                    }
-                }
-                if (match) {
-                    intersections.Add(inter);
-                }
-            }
+            if(!nodes.Contains(seg.startNode)) nodes.Add(seg.startNode);
+            if(!nodes.Contains(seg.endNode)) nodes.Add(seg.endNode);
         }
-        //cull segment pairs that are outside the block bounds
-        List<Intersection> adjIntersections = new List<Intersection>();
-        Dictionary<Intersection, Segment[]> intersectionToSegments = new Dictionary<Intersection, Segment[]>();
-        foreach (var item in intersections) {
-            intersectionToSegments.Add(item, item.segments.ToArray());
+        foreach (var item in nodes) {
+            verts.Add(item.transform.position);
         }
-        foreach (var item in intersectionToSegments) {
-            Dictionary<Intersection, Segment[]> temp = intersectionToSegments;
-            temp.Remove(item.Key);
-            if (temp.ContainsValue(item.Value)) {
-                if (Vector3.Distance(item.Key.transform.position, transform.position) > Vector3.Distance(temp.FirstOrDefault(x => x.Value == item.Value).Key.transform.position, transform.position)) {
-                    intersections.Remove(item.Key);
-                }
-                //segment = road.segmentToObj.FirstOrDefault(x => x.Value == GetComponent<SegmentCollider>()).Key; //reverse lookup on dictionary
-            }
-        }
-        //boundingSegments.ForEach(i => i.intersections.Where(j => !verts.Contains(j.transform.position)).ToList().ForEach(k => verts.Add(k.transform.position)));
-        //intersections.Where(i => !verts.Contains(i.transform.position)).ToList().ForEach(j => verts.Add(j.transform.position));
-        foreach (var item in intersections) {
-            if (!verts.Contains(item.transform.position)) {
-                verts.Add(item.transform.position);
-            }
-        }
+
+        //boundingSegments.ForEach(i => i.nodes.Where(j => !verts.Contains(j.transform.position)).ToList().ForEach(k => verts.Add(k.transform.position)));
+        //nodes.Where(i => !verts.Contains(i.transform.position)).ToList().ForEach(j => verts.Add(j.transform.position));
+
         boundingSegments.ForEach(i => boundingRoads.Add(i.road));
-        verts.ForEach(i => Instantiate(Resources.Load("boundingPoint"), i, Quaternion.identity));
-        MeshRenderer renderer = gameObject.AddComponent<MeshRenderer>();
-        MeshFilter filter = gameObject.AddComponent<MeshFilter>();
+        //nodes.ForEach(i => Instantiate(Resources.Load("boundingPoint"), i.pos(), Quaternion.identity));  
+
+        renderer = gameObject.AddComponent<MeshRenderer>();
+        filter = gameObject.AddComponent<MeshFilter>();
         renderer.material = (Material)Resources.Load("materials/lot");
         filter.mesh = new Mesh();
-        filter.mesh.SetVertices(verts);
-        filter.mesh.uv = new Vector2[] {
-            new Vector2 (0, 0),
-            new Vector2 (0, 1),
-            new Vector2(1, 1),
-            new Vector2 (1, 0)
-        };
-        filter.mesh.triangles = (new int[] { 0, 1, 2, 0, 2, 3 });
+        mesh = filter.mesh;
+        SetMesh(verts);
+        SetBackBlock();
+    }
+
+    void SetMesh(List<Vector3> _verts) {
+
+        Triangulator tr = new Triangulator(Utils.V2dArray(_verts));
+        int[] indices = tr.Triangulate();
+        filter.mesh.SetVertices(_verts);
+        filter.mesh.triangles = indices;
+
         filter.mesh.RecalculateNormals();
-        Debug.Log("all done");
+        filter.mesh.RecalculateBounds();
+        GameObject indicator = Instantiate(Resources.Load("boundingPoint")) as GameObject;
+        indicator.transform.position = filter.mesh.bounds.center;
+    }
+
+    void SetBackBlock() {
+        List<Vector3> newVerts = new List<Vector3>();
+        Vector3 center = mesh.bounds.center;
+        foreach (var vert in verts) {
+            Vector3 v = Vector3.ClampMagnitude((vert - center),(vert - center).magnitude * .8f);
+            Debug.Log(mesh.bounds.extents.magnitude);
+            Debug.Log(mesh.bounds.extents.magnitude - 2f);
+            newVerts.Add(center + v);
+        }
+        SetMesh(newVerts);
     }
 }
