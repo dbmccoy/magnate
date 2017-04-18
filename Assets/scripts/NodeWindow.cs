@@ -23,6 +23,7 @@ public class NodeWindow : EditorWindow {
             Selection.activeTransform = node.transform;
             Debug.Log("insert node");
         }
+
         //EditorGUILayout.LabelField("Status: ", status);
     }
 }

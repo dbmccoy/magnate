@@ -9,7 +9,7 @@ using UnityEditor;
 
 public class Node : MonoBehaviour {
 
-    //[SerializeField]
+    [SerializeField]
     public List<Segment> segments = new List<Segment>();
     public enum Type {
         intersection,
@@ -29,7 +29,7 @@ public class Node : MonoBehaviour {
     }
 
     public void AddNode() {
-        transform.parent.GetComponent<Road>().AddNode();
+        transform.parent.GetComponent<Road>().AddNode(GetComponent<Node>());
     }
 
     public void RemoveNode() {

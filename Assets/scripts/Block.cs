@@ -11,11 +11,14 @@ public class Block: MonoBehaviour {
     List<Node> nodes = new List<Node>();
     public List<Road> boundingRoads;
     public List<Vector3> verts = new List<Vector3>();
+    public List<Vector3> shiftedVerts = new List<Vector3>();
     Mesh mesh;
     private MeshFilter filter;
     private MeshRenderer renderer;
+    private GameObject marker;
     
     public void InitBlock(List<Segment> _boundingSegments) {
+        marker = (GameObject)Resources.Load("boundingPoint");
         foreach (var item in _boundingSegments) {
             if (!boundingSegments.Contains(item)) {
                 boundingSegments.Add(item);
@@ -48,6 +51,30 @@ public class Block: MonoBehaviour {
         SetBackBlock();
     }
 
+
+    [InspectorButton("BlockRay")]
+    public bool blockRay;
+
+    public Vector3 RayIntersect;
+    public float rayDistance;
+
+    public void BlockRay() {
+        Ray ray = new Ray(mesh.bounds.center,Vector3.right*10f);
+        float distance;
+        mesh.bounds.IntersectRay(ray, out distance);
+        rayDistance = Mathf.Abs(distance);
+        //Debug.DrawRay(mesh.bounds.center, Vector3.right, Color.blue);
+        marker = (GameObject) Resources.Load("boundingPoint");
+        GameObject m = Instantiate(marker,transform);
+        Vector3 right = mesh.bounds.center + new Vector3(rayDistance, 0, 0);
+        GameObject m2 = Instantiate(marker, transform);
+        Ray ray2 = new Ray(mesh.bounds.center, Vector3.left * 10f);
+        mesh.bounds.IntersectRay(ray2, out distance);
+        rayDistance = Mathf.Abs(distance);
+        Vector3 left = mesh.bounds.center + new Vector3(-rayDistance, 0, 0);
+        Debug.DrawLine(left,right,Color.blue);
+    }
+
     void SetMesh(List<Vector3> _verts) {
 
         Triangulator tr = new Triangulator(Utils.V2dArray(_verts));
@@ -59,6 +86,7 @@ public class Block: MonoBehaviour {
         filter.mesh.RecalculateBounds();
         GameObject indicator = Instantiate(Resources.Load("boundingPoint")) as GameObject;
         indicator.transform.position = filter.mesh.bounds.center;
+        indicator.transform.parent = transform;
     }
 
     void SetBackBlock() {
@@ -70,6 +98,7 @@ public class Block: MonoBehaviour {
             Debug.Log(mesh.bounds.extents.magnitude - 2f);
             newVerts.Add(center + v);
         }
+        shiftedVerts = newVerts;
         SetMesh(newVerts);
     }
 }

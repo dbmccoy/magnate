@@ -1,20 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+[Serializable]
 public class SegmentCollider : MonoBehaviour {
 
     public Segment segment;
+    public Road road;
     public Vector3 start;
     public Vector3 end;
-    private LineRenderer line;
-    int segmentNumber;
-    BoxCollider col;
-    Road road;
+
+    public LineRenderer line;
+    [SerializeField] int segmentNumber;
+    [SerializeField] BoxCollider col;
 
     void Awake () {
-	    line = GetComponent<LineRenderer>();
     }
 
     // Use this for initialization
@@ -29,13 +31,15 @@ public class SegmentCollider : MonoBehaviour {
         col.isTrigger = true;
         col.GetComponent<BoxCollider>().isTrigger = true;
         col.transform.tag = "nodeSegment";
+        line = GetComponent<LineRenderer>();
+
         //start = segment.start();
         //end = segment.end();
         //UpdateCollider();
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update () {
         //UpdateCollider();
 	}
 

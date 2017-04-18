@@ -25,8 +25,8 @@ public class NodeMap : MonoBehaviour {
     {
         get { return _nodeMap ?? (_nodeMap = GameObject.Find("Roads").GetComponent<NodeMap>()); }
     }
-    
-    List<Vector3> UpdatedIntersectionPositions;
+    [SerializeField]
+    private List<Vector3> UpdatedIntersectionPositions;
 
     public void AddIntersection(Node node, Road road1, Road road2, Segment seg1 = null, Segment seg2 = null, bool coerce = false, Node.Type type = Node.Type.turn) {
         UpdatedIntersectionPositions.Add(node.pos());
@@ -77,6 +77,7 @@ public class NodeMap : MonoBehaviour {
 
     public void AddRoad() {
         GameObject newRoad = Instantiate(Resources.Load("road"), transform) as GameObject;
+        newRoad.GetComponent<Road>().Init();
         Selection.activeObject = newRoad;
         RoadName(newRoad.GetComponent<Road>());
     }
@@ -89,6 +90,7 @@ public class NodeMap : MonoBehaviour {
 
     Road ReturnRoad() {
         GameObject newRoad = Instantiate(Resources.Load("road"), transform) as GameObject;
+        newRoad.GetComponent<Road>().Init();
         Selection.activeObject = newRoad;
         RoadName(newRoad.GetComponent<Road>());
         return newRoad.GetComponent<Road>();

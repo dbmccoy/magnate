@@ -9,32 +9,38 @@ using System.Linq;
 public class Road : MonoBehaviour {
 
     public List<Node> nodes;
-    Vector3[] points_v;
+    public Vector3[] points_v;
     public List<Segment> segments;
-    List<SegmentCollider> segmentCols;
+    public List<SegmentCollider> segmentCols;
     public List<Node[]> nodePairs;
-    public Dictionary<Segment, SegmentCollider> segmentToCol;
+    //public Dictionary<Segment, SegmentCollider> segmentToCol;
+
+    public DictionaryOfSegmentAndSegmentCollider segmentToCol;
     //public List<Intersection> intersections;
     public LineRenderer line;
     public bool isActiveInEditor;
     public Node node_prefab;
     public SegmentCollider segmentPrefab;
     public string roadName;
-    Road self;
+    [SerializeField] Road self;
 
     // Use this for initialization
     void Awake () {
+
+	}
+
+    public void Init() {
         line = GetComponent<LineRenderer>();
         self = GetComponent<Road>();
-        segmentCols = new List<SegmentCollider>();
-        segments = new List<Segment>();
-        if(nodePairs == null) nodePairs = new List<Node[]>();
-        nodesToSegment = new Dictionary<Node[], Segment>();
-        segmentToCol = new Dictionary<Segment, SegmentCollider>();
+        if (nodePairs == null) segmentCols = new List<SegmentCollider>();
+        if (segments == null) segments = new List<Segment>();
+        if (nodePairs == null) nodePairs = new List<Node[]>();
+        if (nodesToSegment == null) nodesToSegment = new Dictionary<Node[], Segment>();
+        if (segmentToCol == null) segmentToCol = new DictionaryOfSegmentAndSegmentCollider();
         AddNode();
         AddNode();
         GenerateNodeSegments();
-	}
+    }
 
     public void NameRoad(string n) {
         roadName = n;
@@ -72,6 +78,18 @@ public class Road : MonoBehaviour {
         segmentCol.Init(segment, self);
     }
 
+    public void AddNode(Node node) {
+        Debug.Log("add node");
+        Node newNode = Instantiate(node_prefab);
+        nodes.Add(newNode);
+        NodeMap.instance.AddIntersection(newNode, self, self, coerce: true);
+        nodePairs.Add(new Node[] { node, newNode });
+        newNode.transform.SetParent(transform);
+        Segment segment = new Segment(node, newNode, self);
+        AddSegment(segment);
+        Selection.activeObject = newNode;
+        //transform.parent.GetComponent<NodeMap>().PopulateNodeMap();
+    }
     public void AddNode() {
         Debug.Log("add node");
         Node newNode = Instantiate(node_prefab);
