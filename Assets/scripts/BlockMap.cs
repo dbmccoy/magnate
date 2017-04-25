@@ -40,7 +40,7 @@ public class BlockMap : MonoBehaviour {
             new Vector3(0, 0, -10), new Vector3(10, 0, 10), new Vector3(10, 0, -10), new Vector3(-10, 0, 10),
             new Vector3(-10, 0, -10),
         };
-        for (int i = 0; i < positions.Length; i++) {
+        for (int i = 0; i < 1; i++) {
             Vector3 _pos = positions[i]; //Random.insideUnitSphere * Random.Range(0f, 50f); _pos.y = 0;
             QueryBlockBounds(_pos);
         }

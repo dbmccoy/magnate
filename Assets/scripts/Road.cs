@@ -91,7 +91,7 @@ public class Road : MonoBehaviour {
         //transform.parent.GetComponent<NodeMap>().PopulateNodeMap();
     }
     public void AddNode() {
-        Debug.Log("add node");
+
         Node newNode = Instantiate(node_prefab);
         nodes.Add(newNode);
         NodeMap.instance.AddIntersection(newNode, self, self, coerce: true);
