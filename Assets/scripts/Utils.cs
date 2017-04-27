@@ -50,4 +50,9 @@ public static class Utils {
         up,
         down
     }
+
+    public static Direction Left = Direction.left;
+    public static Direction Right = Direction.right;
+    public static Direction Up = Direction.up;
+    public static Direction Down = Direction.down;
 }

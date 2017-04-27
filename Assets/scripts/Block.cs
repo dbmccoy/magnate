@@ -76,11 +76,37 @@ public class Block: MonoBehaviour {
         }
         subdivisions = Mathf.FloorToInt(length / minimumFrontage);
 
-        Utils.UniqueList(debugPoints, BlockRay(mesh.bounds.center, Vector3.right, isVertical,reciprocal:false,baseLine:true));
+        Utils.UniqueList(shiftedVerts, BlockRay(mesh.bounds.center, Vector3.right, isVertical, baseLine:true));
+        Utils.UniqueList(shiftedVerts, BlockRay(mesh.bounds.center, Vector3.left, isVertical, baseLine: true));
+        Utils.UniqueList(shiftedVerts, BlockRay(mesh.bounds.center, Vector3.up, true, baseLine: false));
+        Utils.UniqueList(shiftedVerts, BlockRay(mesh.bounds.center, Vector3.down, true, baseLine: false));
+
+        foreach (var vert in shiftedVerts) {
+            Instantiate(marker, vert, Quaternion.identity, transform);
+        }
+
         //SubdivideBlock(mesh.vertices.ToList(),mesh.bounds.center,new Vector3(0,0,1),dir_h:Utils.Direction.right,dir_v:Utils.Direction.up);
-        direction = new Vector3(0,0,1);
-        LotInfo lot1 = SubdivideBlock(LotFromParentBlock());
-        LotInfo lot2 = SubdivideBlock(lot1);
+        direction = new Vector3(0, 0, 1);
+        LotInfo BlockLot = LotFromParentBlock();
+        LotInfo lot1 = SubdivideBlock(BlockLot, Utils.Right, Utils.Up);
+        LotInfo lot2 = SubdivideBlock(lot1, Utils.Left, Utils.Up);
+        LotInfo lot3 = SubdivideBlock(lot1, Utils.Right, Utils.Up);
+
+
+        LotInfo lotLU = SubdivideBlock(BlockLot, Utils.Left, Utils.Up);
+        LotInfo lotLUL = SubdivideBlock(lotLU, Utils.Left, Utils.Up);
+        LotInfo lotLUR = SubdivideBlock(lotLU, Utils.Right, Utils.Up);
+
+
+        LotInfo lotLD = SubdivideBlock(BlockLot, Utils.Left, Utils.Down);
+        LotInfo lotLDL = SubdivideBlock(lotLD, Utils.Left, Utils.Down);
+        LotInfo lotLDR = SubdivideBlock(lotLD, Utils.Right, Utils.Down);
+
+
+        LotInfo lotRD = SubdivideBlock(BlockLot, Utils.Right, Utils.Down);
+        LotInfo lotRDL = SubdivideBlock(lotRD, Utils.Left, Utils.Down);
+        LotInfo lotRDR = SubdivideBlock(lotRD, Utils.Right, Utils.Down);
+
     }
 
 
@@ -103,32 +129,28 @@ public class Block: MonoBehaviour {
         points.Add(origin);
         Instantiate(marker, origin,Quaternion.identity,this.transform);
         Ray ray = new Ray(origin,dir*1000f);
-        Ray ray2 = new Ray(origin, -dir * 1000f);
-        ray2.origin = ray2.GetPoint(20f);
         ray.origin = ray.GetPoint(20f);
 
 
         foreach (var pair in shiftedPairs) {
             Vector3 intersection;
-            Vector3 intersection2;
 
             //i'm so so so so so sorry for this
             if (Math3d.AreLineSegmentsCrossing(ray.origin, origin, pair[0], pair[1])) {
                 Math3d.LineLineIntersection(out intersection, ray.origin, ray.origin - origin, pair[0], pair[0] - pair[1]);
-                if (intersection.x > point1.x || (vertical == true && intersection.z > point1.z)) {
+               
+                if ((Mathf.Sign(dir.x) == -1 && intersection.x <= point1.x) 
+                    || (Mathf.Sign(dir.x) == 1 && intersection.x >= point1.x) 
+                    || (Mathf.Sign(dir.z) == 1 && vertical == true && intersection.z >= point1.z)
+                    || (Mathf.Sign(dir.z) == -1 && vertical == true && intersection.z <= point1.z)) {
                     point1 = intersection;
-                    if(baseLine) AnchorPoint = intersection;
+                    if(baseLine) {
+                        AnchorPoint = intersection;
+                        shiftedVerts.Add(intersection);
+                    }
                     points.Add(point1);
                     //Instantiate(marker, point1, Quaternion.identity, this.transform);
 
-                }
-            }
-            if (reciprocal && Math3d.AreLineSegmentsCrossing(ray2.origin, origin, pair[0], pair[1])) {
-                Math3d.LineLineIntersection(out intersection2, ray2.origin, ray2.origin - origin, pair[0], pair[0] - pair[1]);
-                if (intersection2.x < point2.x || (vertical == true && intersection2.z < point2.z)) {
-                    point2 = intersection2;
-                    points.Add(point2);
-                    //Instantiate(marker, point2, Quaternion.identity, this.transform);
                 }
             }
         }
@@ -140,37 +162,61 @@ public class Block: MonoBehaviour {
 
 
     LotInfo LotFromParentBlock() {
-        LotInfo lot = new LotInfo(GetComponent<Block>(),Utils.Direction.right,Utils.Direction.up,shiftedVerts,direction,parentBlock:true);
+        LotInfo lot = new LotInfo(GetComponent<Block>(),shiftedVerts,direction,Vector3.zero,parentBlock:true);
         return lot;
     }
 
-    LotInfo SubdivideBlock(LotInfo Lot) {
+    LotInfo SubdivideBlock(LotInfo Lot,Utils.Direction h_dir,Utils.Direction v_dir) {
         List<Vector3> newPoints = new List<Vector3>();
-        Utils.UniqueList(newPoints, debugPoints);
-        Utils.UniqueList(newPoints, BlockRay(Lot.Center, direction, vertical: true, reciprocal: false));
+        List<Vector3> AnchorsH = new List<Vector3>();
+        List<Vector3> AnchorsV = new List<Vector3>();
+        if(h_dir == Utils.Left) {
+            AnchorsH = BlockRay(Lot.Center, Vector3.left, vertical: false, reciprocal: false);
+        }
+        if (h_dir == Utils.Right) {
+            AnchorsH = BlockRay(Lot.Center, Vector3.right, vertical: false, reciprocal: false);
+        }
+
+        if(v_dir == Utils.Up) {
+            AnchorsV = BlockRay(Lot.Center,new Vector3(0,0,1), vertical: true, reciprocal: false);
+        }
+        if(v_dir == Utils.Down) {
+            AnchorsV = BlockRay(Lot.Center, new Vector3(0, 0, -1), vertical: true, reciprocal: false);
+        }
+
+        Lot.LotVerts.AddRange(AnchorsH);
+        Lot.LotVerts.AddRange(AnchorsV);
+        //Utils.UniqueList(newPoints, AnchorsV);
+        //Utils.UniqueList(newPoints, AnchorsH);
+        Debug.Log(AnchorsH.Count);
 
         foreach (var vert in Lot.LotVerts) {
-            if (Lot.HorizontalDirection == Utils.Direction.left && vert.x < Lot.Center.x) {
-                if (Lot.VerticalDirection == Utils.Direction.up && vert.z > Lot.Center.z) {
+            if (h_dir == Utils.Left && vert.x <= Lot.Center.x) {
+                if (v_dir == Utils.Up && vert.z >= Lot.Center.z) {
                     newPoints.Add(vert);
                 }
-                if (Lot.VerticalDirection == Utils.Direction.down && vert.z < Lot.Center.z) {
+                if (v_dir == Utils.Down && vert.z <= Lot.Center.z) {
                     newPoints.Add(vert);
                 }
             }
-            if (Lot.HorizontalDirection == Utils.Direction.right && vert.x > Lot.Center.x) {
-                if (Lot.VerticalDirection == Utils.Direction.up && vert.z > Lot.Center.z) {
+            if (h_dir == Utils.Right && vert.x >= Lot.Center.x) {
+                if (v_dir == Utils.Up && vert.z >= Lot.Center.z) {
                     newPoints.Add(vert);
                 }
-                if (Lot.VerticalDirection == Utils.Direction.down && vert.z < Lot.Center.z) {
+                if (v_dir == Utils.Down && vert.z <= Lot.Center.z) {
                     newPoints.Add(vert);
                 }
             }
         }
+
+        GameObject LotObject = new GameObject();
+        LotObject.transform.parent = transform;
         foreach (var newPoint in newPoints) {
-            Instantiate(marker, newPoint, Quaternion.identity, transform);
+            //if(!Lot.ParentBlock) {
+                Instantiate(marker, newPoint, Quaternion.identity, LotObject.transform);
+            //}
         }
-        LotInfo newLot = new LotInfo(self,Utils.Direction.right,Utils.Direction.up,newPoints,direction);
+        LotInfo newLot = new LotInfo(self,newPoints,direction,AnchorsH[AnchorsH.Count-1]);
         return newLot;
     }
 
@@ -249,15 +295,13 @@ public class LotInfo {
     public Vector3 Center;
     public Vector3 Direction;
     
-    public LotInfo(Block block,Utils.Direction h_dir,Utils.Direction v_dir,List<Vector3> lotVerts, Vector3 direction, bool parentBlock = false) {
+    public LotInfo(Block block,List<Vector3> lotVerts, Vector3 direction, Vector3 anchor, bool parentBlock = false) {
         ParentBlock = block;
-        HorizontalDirection = h_dir;
-        VerticalDirection = v_dir;
         LotVerts = lotVerts;
         Direction = direction;
-        AnchorPoint = block.AnchorPoint;
+        AnchorPoint = anchor;
         if (!parentBlock) {
-            Center = (block.mesh.bounds.center + AnchorPoint) / 2;
+            Center = (block.mesh.bounds.center + anchor) / 2;
         }
         else {
             Center = block.mesh.bounds.center;
