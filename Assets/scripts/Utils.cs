@@ -36,12 +36,59 @@ public static class Utils {
         }
     }
 
+    public static void VectorList(List<Vector3> list, Vector3 item) {
+        foreach (var v in list) {
+            if(item == v) {
+                return;
+            }
+        }
+        list.Add(item);
+    }
+
+    public static void VectorList(List<Vector3> list, List<Vector3> item) {
+        if (item.GetType() != list.GetType()) {
+            throw new Exception("Utils.UniqueList parameters have mismatched types");
+        }
+        foreach (var i in item) {
+            bool contains = false;
+            foreach (var v in list) {
+                if (i == v) contains = true;
+            }
+            if(!contains) list.Add(i);
+        }
+    }
+
     public static void UniqueList<T>(List<T> list, List<T> range) {
         foreach (var item in range) {
             if (!list.Contains(item)) {
                 list.Add(item);
             }
         }
+    }
+
+    public static Vector3 ReturnMaximalVector(List<Vector3> vectors, Utils.Direction dir) {
+        Vector3 maximalVector = Vector3.zero;
+        bool init = true;
+        foreach (var v in vectors) {
+            if (init) {
+                maximalVector = v;
+                init = false;
+                continue;
+            }
+            if(dir == Left && v.x < maximalVector.x) {
+                maximalVector = v;
+            }
+            if(dir == Right && v.x > maximalVector.x) {
+                maximalVector = v;
+            }
+            if(dir == Up && v.z > maximalVector.z) {
+                maximalVector = v;
+            }
+            if(dir == Down && v.z < maximalVector.z) {
+                maximalVector = v;
+            }
+        }
+        return maximalVector;
     }
 
     public enum Direction {

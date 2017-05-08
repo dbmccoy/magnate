@@ -87,6 +87,7 @@
     <Compile Include="Assets\scripts\BlockMap.cs" />
     <Compile Include="Assets\scripts\InspectorButton.cs" />
     <Compile Include="Assets\scripts\Intersection.cs" />
+    <Compile Include="Assets\scripts\Lot.cs" />
     <Compile Include="Assets\scripts\Math3d.cs" />
     <Compile Include="Assets\scripts\Node.cs" />
     <Compile Include="Assets\scripts\NodeMap.cs" />
