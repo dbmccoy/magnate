@@ -17,7 +17,7 @@ public class Block: MonoBehaviour {
     public Mesh mesh;
     private MeshFilter filter;
     private MeshRenderer renderer;
-    private GameObject marker;
+    public GameObject marker;
     public GameObject redMarker;
     private Block self;
     
@@ -55,6 +55,7 @@ public class Block: MonoBehaviour {
         mesh = filter.sharedMesh;
         SetMesh(verts);
         SetBackBlock();
+        renderer.enabled = false;
     }
 
     public List<Vector3> debugPoints = new List<Vector3>();
@@ -62,57 +63,67 @@ public class Block: MonoBehaviour {
     public Vector3 direction;
     public Vector3 LeftAnchor;
     public Vector3 RightAnchor;
+    public Vector3 UpAnchor;
+    public Vector3 DownAnchor;
 
     public float X_angle;
-    public Vector3 Transformed_Dir;
+    public Vector3 RayVectorH;
+    public Vector3 RayVectorV;
     [InspectorButton("AngleCheck")]
     public bool angleCheck;
 
     public void AngleCheck() {
-        Ray ray = new Ray(self.mesh.bounds.center, Vector3.back * 1000f);
+        Ray ray = new Ray(BlockCenter, Vector3.back * 1000f);
         Debug.DrawLine(ray.origin,ray.GetPoint(10));
         float X_angle_bot = 0;
         float X_angle_top = 0;
+        float top_distance = 0;
+        float bot_distance = 0;
+        Vector3 top_intersect;
+        Vector3 bot_intersect;
         foreach (var segment in boundingSegments) {
             if (Math3d.AreLineSegmentsCrossing(ray.origin, ray.GetPoint(20f), segment.start(), segment.end())) {
                 X_angle_bot = Vector3.Angle(segment.end() - segment.start(), Vector3.back) - 90f;
-                Debug.Log(X_angle_bot + "bot");
-                //Debug.DrawLine(segment.start(),segment.end(),Color.blue);
+                Math3d.LineLineIntersection(out top_intersect, ray.origin, ray.direction, segment.start(),
+                    segment.vector());
+                top_distance = Vector3.Distance(ray.origin,top_intersect);
             }
             if (Math3d.AreLineSegmentsCrossing(ray.origin, -ray.GetPoint(20f), segment.start(), segment.end())) {
                 X_angle_top = Vector3.Angle(segment.end() - segment.start(), Vector3.back) - 90f;
-                Debug.Log(X_angle_top + "top");
-                //Debug.DrawLine(segment.start(),segment.end(),Color.blue);
+                Math3d.LineLineIntersection(out bot_intersect, ray.origin, -ray.direction, segment.start(),
+                    segment.vector());
+                bot_distance = Vector3.Distance(ray.origin, bot_intersect);
             }
         }
-        Transformed_Dir = Quaternion.Euler(0,(-X_angle_bot - X_angle_top)/2,0)*Vector3.right;
+        float distance = bot_distance - top_distance;
+        BlockCenter = BlockCenter + new Vector3(0, 0, distance/2);
+        float RayVectorAngleH = (-X_angle_bot - X_angle_top) / 2;
+        RayVectorV = Vector3.forward;
+
+        RayVectorH = Quaternion.Euler(0,RayVectorAngleH,0)*Vector3.right;
+        if(Mathf.Abs(RayVectorAngleH) >= 20f) {
+            RayVectorV = Quaternion.Euler(0,-90f,0) * RayVectorH;
+        }
     }
 
     [InspectorButton("BlockRayButton")]
     public bool blockRay;
 
     public void BlockRayButton() {
+        BlockCenter = mesh.bounds.center;
         bool isVertical = false;
-        float length;
-        if(mesh.bounds.size.x >= mesh.bounds.size.z) {
-            length = mesh.bounds.size.x;
-        }
-        else {
-            length = mesh.bounds.size.z;
-            isVertical = true;
-        }
         AngleCheck();
 
-        RightAnchor = Utils.ReturnMaximalVector(BlockRay(mesh.bounds.center, Transformed_Dir, isVertical, baseLine: true),Utils.Right);
-        LeftAnchor = Utils.ReturnMaximalVector(BlockRay(mesh.bounds.center, -Transformed_Dir, isVertical, baseLine: true),Utils.Left);
+        RightAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, RayVectorH, isVertical, baseLine: true),Utils.Right);
+        LeftAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, -RayVectorH, isVertical, baseLine: true),Utils.Left);
+        UpAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, RayVectorV, isVertical, baseLine: true), Utils.Up);
+        DownAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, -RayVectorV, isVertical, baseLine: true), Utils.Down);
 
-        Utils.VectorList(shiftedVerts, RightAnchor);
-        Utils.VectorList(shiftedVerts, LeftAnchor);
-        Utils.VectorList(shiftedVerts, BlockRay(mesh.bounds.center, Vector3.up, true, baseLine: false));
-        Utils.VectorList(shiftedVerts, BlockRay(mesh.bounds.center, Vector3.down, true, baseLine: false));
+        //Utils.VectorList(shiftedVerts, RightAnchor);
+        //Utils.VectorList(shiftedVerts, LeftAnchor);
+        //Utils.VectorList(shiftedVerts, UpAnchor);
+        //Utils.VectorList(shiftedVerts, DownAnchor);
         
-        direction = new Vector3(0, 0, 1);
-
         Utils.Direction[] h_directions = { Utils.Right, Utils.Left};
         Utils.Direction[] v_directions = {Utils.Up, Utils.Down};
         LotInfo BlockLot = LotFromParentBlock();
@@ -142,7 +153,6 @@ public class Block: MonoBehaviour {
         Vector3 point1 = origin;
         var points = new List<Vector3>();
         points.Add(origin);
-        //Instantiate(marker, origin,Quaternion.identity,this.transform);
         Ray ray = new Ray(origin,dir*1000f);
         ray.origin = ray.GetPoint(20f);
 
@@ -162,7 +172,7 @@ public class Block: MonoBehaviour {
                     point1 = intersection;
                     //Debug.Log(point1);
                     if (baseLine) {
-                        shiftedVerts.Add(intersection);
+                        //shiftedVerts.Add(intersection);
                     }
                     points.Add(point1);
                     //Instantiate(marker, point1, Quaternion.identity, this.transform);
@@ -179,27 +189,39 @@ public class Block: MonoBehaviour {
         return lot2;
     }
 
+    public Vector3 BlockCenter;
+
     LotInfo SubdivideBlock(LotInfo Lot,Utils.Direction h_dir,Utils.Direction v_dir) {
         List<Vector3> newPoints = new List<Vector3>();
-        List<Vector3> lotVerts = Lot.LotVerts;
-        Vector3 BlockCenter = self.mesh.bounds.center;
+        List<Vector3> lotVerts = new List<Vector3>();
+        lotVerts.AddRange(Lot.LotVerts);
+        Vector3 rayVectorV = (v_dir == Utils.Up) ? RayVectorV : -RayVectorV;
+
         Vector3 AnchorsH = (h_dir == Utils.Left) ? 
-                Utils.ReturnMaximalVector(BlockRay(Lot.Center, Vector3.left, vertical: false), Utils.Left):
-                Utils.ReturnMaximalVector(BlockRay(Lot.Center, Vector3.right, vertical: false), Utils.Right);
+                Utils.ReturnMaximalVector(BlockRay(Lot.Center, -RayVectorH, vertical: false), Utils.Left):
+                Utils.ReturnMaximalVector(BlockRay(Lot.Center, RayVectorH, vertical: false), Utils.Right);
         
         Vector3 AnchorsV = (v_dir == Utils.Up) ? 
-                Utils.ReturnMaximalVector(BlockRay(Lot.Center, new Vector3(0, 0, 1), vertical: true), Utils.Up) :
-                Utils.ReturnMaximalVector(BlockRay(Lot.Center, new Vector3(0, 0, -1), vertical: true), Utils.Down);
-        
+                Utils.ReturnMaximalVector(BlockRay(Lot.Center, RayVectorV, vertical: true), Utils.Up) :
+                Utils.ReturnMaximalVector(BlockRay(Lot.Center, -RayVectorV, vertical: true), Utils.Down);
+
+        Vector3 left = (h_dir == Utils.Left) ? Lot.Left : Lot.Center;
+        Vector3 right = (h_dir == Utils.Right) ? Lot.Right : Lot.Center;
+
         Utils.VectorList(lotVerts, AnchorsH);
         Utils.VectorList(lotVerts, AnchorsV);
-        Utils.VectorList(lotVerts, BlockCenter);
         Utils.VectorList(lotVerts, Lot.Center);
         Utils.VectorList(lotVerts, self.shiftedVerts);
+        Utils.VectorList(lotVerts, BlockCenter);
 
-        Utils.VectorList(newPoints,Lot.Center);
+        Utils.VectorList(newPoints, left);
+        Utils.VectorList(newPoints, right);
+        Utils.VectorList(newPoints, Utils.ReturnMaximalVector(BlockRay(left, rayVectorV), v_dir));
+        Utils.VectorList(newPoints, Utils.ReturnMaximalVector(BlockRay(right, rayVectorV), v_dir));
+
+
         foreach (var vert in lotVerts) {
-            if (h_dir == Utils.Left && vert.x <= Lot.Center.x && vert.x >= Lot.Left.x) {
+            if (h_dir == Utils.Left && vert.x <= Lot.Center.x && vert.x >= (Lot.Left.x - Vector3.Distance(Lot.Center,Lot.Left))) {
                 if (v_dir == Utils.Up && vert.z >= Lot.Center.z) {
                     Utils.VectorList(newPoints,vert);
                 }
@@ -207,7 +229,7 @@ public class Block: MonoBehaviour {
                     Utils.VectorList(newPoints, vert);
                 }
             }
-            if (h_dir == Utils.Right && vert.x <= Lot.Right.x && vert.x >= Lot.Center.x) {
+            if (h_dir == Utils.Right && vert.x <= Lot.Right.x + Vector3.Distance(Lot.Center, Lot.Right)  && vert.x >= Lot.Center.x ) {
                 if (v_dir == Utils.Up && vert.z >= Lot.Center.z) {
                     Utils.VectorList(newPoints, vert);
                 }
@@ -218,15 +240,15 @@ public class Block: MonoBehaviour {
         }
         //Debug.Log(newPoints.Count);
       
-        Vector3 left = (h_dir == Utils.Left) ? Lot.Left : Lot.Center;
-        Vector3 right = (h_dir == Utils.Right) ? Lot.Right : Lot.Center;
-        
+
 
         LotInfo newLot = new LotInfo(self,newPoints,direction,left: left,right: right,parentLot: Lot);
         
-        GameObject LotObject = (GameObject)Instantiate(Resources.Load("Lot"));
-        LotObject.GetComponent<Lot>().init(newLot);
-        LotObject.transform.parent = transform;
+        if(newLot.Frontage < 3) {
+            GameObject LotObject = (GameObject)Instantiate(Resources.Load("Lot"));
+            LotObject.GetComponent<Lot>().init(newLot);
+            LotObject.transform.parent = transform;
+        }
 
 
         //Debug.Log(AnchorsH[AnchorsH.Count - 1]);

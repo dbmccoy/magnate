@@ -27,9 +27,17 @@ public class Triangulator {
 
         int nv = n;
         int count = 2 * nv;
+
+        Debug.Log(count + "count");
+        Debug.Log(n + "n");
+        Debug.Log(nv + "nv");
+
         for (int m = 0, v = nv - 1; nv > 2;) {
-            if ((count--) <= 0)
+            if ((count--) <= 0) {
+
+                Debug.Log(count);
                 return indices.ToArray();
+            }
 
             int u = v;
             if (nv <= u)
@@ -69,6 +77,7 @@ public class Triangulator {
             Vector2 qval = m_points[q];
             A += pval.x * qval.y - qval.x * pval.y;
         }
+        //Debug.Log(A);
         return (A * 0.5f);
     }
 
