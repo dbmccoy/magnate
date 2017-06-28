@@ -38,7 +38,7 @@ public static class Utils {
 
     public static void VectorList(List<Vector3> list, Vector3 item) {
         foreach (var v in list) {
-            if(item == v) {
+            if(Vector3.Distance(item, v) < .1f) {
                 return;
             }
         }
@@ -52,7 +52,7 @@ public static class Utils {
         foreach (var i in item) {
             bool contains = false;
             foreach (var v in list) {
-                if (i == v) contains = true;
+                if (Vector3.Distance(i,v) < .1f) contains = true;
             }
             if(!contains) list.Add(i);
         }
@@ -64,6 +64,17 @@ public static class Utils {
                 list.Add(item);
             }
         }
+    }
+
+
+    /// <summary>
+    /// Determine the signed angle between two vectors, with normal 'n'
+    /// as the rotation axis.
+    /// </summary>
+    public static float AngleSigned(Vector3 v1, Vector3 v2, Vector3 n) {
+        return Mathf.Atan2(
+            Vector3.Dot(n, Vector3.Cross(v1, v2)),
+            Vector3.Dot(v1, v2)) * Mathf.Rad2Deg;
     }
 
     public static Vector3 ReturnMaximalVector(List<Vector3> vectors, Utils.Direction dir) {
@@ -91,6 +102,21 @@ public static class Utils {
         return maximalVector;
     }
 
+    public static ArrayList NodeFloatTuple(Node n, float f) {
+        ArrayList thing = new ArrayList();
+        thing.Add(n); thing.Add(f);
+        return thing;
+    }
+
+    public static Vector3 AverageVectors(List<Vector3> vectors) {
+        Vector3 vec = vectors[0];
+        for (int i = 1; i < vectors.Count; i++) {
+            vec = vec + vectors[i];
+        }
+        vec = vec / vectors.Count;
+        return vec;
+    }
+
     public enum Direction {
         left,
         right,
@@ -102,4 +128,13 @@ public static class Utils {
     public static Direction Right = Direction.right;
     public static Direction Up = Direction.up;
     public static Direction Down = Direction.down;
+}
+
+public class NodeFloatTuple {
+    public Node n;
+    public float f;
+    public NodeFloatTuple(Node _n, float _f) {
+        n = _n;
+        f = _f;
+    }
 }

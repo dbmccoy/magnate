@@ -40,7 +40,7 @@ public class BlockMap : MonoBehaviour {
             new Vector3(0, 0, -10), new Vector3(10, 0, 10), new Vector3(10, 0, -10), new Vector3(-10, 0, 10),
             new Vector3(-10, 0, -10),
         };
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < positions.Length; i++) {
             Vector3 _pos = positions[i]; //Random.insideUnitSphere * Random.Range(0f, 50f); _pos.y = 0;
             QueryBlockBounds(_pos);
         }
@@ -74,7 +74,8 @@ public class BlockMap : MonoBehaviour {
         //newBlock.transform.position = _pos;
         newBlock.InitBlock(segments);
         blocks.Add(newBlock);
-        Debug.Log("instantiated new block at " + _pos);
+        newBlock.BlockRayButton();
+
     }
 
     Segment ReturnBoundingSegment(Vector3 origin, Vector3 hitPoint, Road hitRoad) {

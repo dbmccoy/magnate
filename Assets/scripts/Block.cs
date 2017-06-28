@@ -25,6 +25,7 @@ public class Block: MonoBehaviour {
         marker = (GameObject)Resources.Load("boundingPoint");
         redMarker = (GameObject)Resources.Load("redMarker");
         self = GetComponent<Block>();
+        direction = Vector3.forward;
         foreach (var item in _boundingSegments) {
             if (!boundingSegments.Contains(item)) {
                 boundingSegments.Add(item);
@@ -69,40 +70,74 @@ public class Block: MonoBehaviour {
     public float X_angle;
     public Vector3 RayVectorH;
     public Vector3 RayVectorV;
+    public float RayVectorAngleH;
+    public float RayVectorAngleV;
+    public float AngleDown;
+    public float AngleUp;
+    public float AngleLeft;
+    public float AngleRight;
     [InspectorButton("AngleCheck")]
     public bool angleCheck;
 
     public void AngleCheck() {
-        Ray ray = new Ray(BlockCenter, Vector3.back * 1000f);
+        Ray ray = new Ray(BlockCenter, Vector3.forward  * 1000f);
+        Ray ray2 = new Ray(BlockCenter, Vector3.back * 1000f);
+        Ray RayL = new Ray(BlockCenter, Vector3.left * 1000f);
+        Ray RayR = new Ray(BlockCenter, Vector3.right * 1000f);
+
         Debug.DrawLine(ray.origin,ray.GetPoint(10));
-        float X_angle_bot = 0;
-        float X_angle_top = 0;
+        AngleDown = 0;
+        AngleUp = 0;
+        AngleRight = 0;
+        AngleRight = 0;
         float top_distance = 0;
         float bot_distance = 0;
+        float left_distance = 0;
+        float right_distance = 0;
         Vector3 top_intersect;
         Vector3 bot_intersect;
-        foreach (var segment in boundingSegments) {
+        foreach (var segment in boundingSegments) {  //FIND TOP AND BOTTOM INTERSECTION POINTS, CALCULATE CENTER
             if (Math3d.AreLineSegmentsCrossing(ray.origin, ray.GetPoint(20f), segment.start(), segment.end())) {
-                X_angle_bot = Vector3.Angle(segment.end() - segment.start(), Vector3.back) - 90f;
-                Math3d.LineLineIntersection(out top_intersect, ray.origin, ray.direction, segment.start(),
-                    segment.vector());
+                AngleUp = segment.Angle();
+                //X_angle_top = Math3d.SignedVectorAngle(segment.end() - segment.start(), Vector3.right, Vector3.forward);
+                Math3d.LineLineIntersection(out top_intersect, ray.origin, ray.direction, segment.start(), segment.vector());
                 top_distance = Vector3.Distance(ray.origin,top_intersect);
             }
-            if (Math3d.AreLineSegmentsCrossing(ray.origin, -ray.GetPoint(20f), segment.start(), segment.end())) {
-                X_angle_top = Vector3.Angle(segment.end() - segment.start(), Vector3.back) - 90f;
-                Math3d.LineLineIntersection(out bot_intersect, ray.origin, -ray.direction, segment.start(),
-                    segment.vector());
+            if (Math3d.AreLineSegmentsCrossing(ray2.origin, ray2.GetPoint(20f), segment.start(), segment.end())) {
+                AngleDown = segment.Angle();
+                //X_angle_top = (Mathf.Sign(X_angle_top) == 1) ? X_angle_top - 90f : X_angle_top +90f;
+                Math3d.LineLineIntersection(out bot_intersect, ray.origin, ray2.direction, segment.start(), segment.vector());
                 bot_distance = Vector3.Distance(ray.origin, bot_intersect);
+            }
+            if (Math3d.AreLineSegmentsCrossing(RayL.origin, RayL.GetPoint(20f), segment.start(), segment.end())) {
+                AngleLeft = segment.angleV();
+                Math3d.LineLineIntersection(out bot_intersect, ray.origin, ray2.direction, segment.start(), segment.vector());
+                left_distance = Vector3.Distance(ray.origin, bot_intersect);
+            }
+            if (Math3d.AreLineSegmentsCrossing(RayR.origin, RayR.GetPoint(20f), segment.start(), segment.end())) {
+                AngleRight = segment.angleV();
+                Math3d.LineLineIntersection(out bot_intersect, ray.origin, ray2.direction, segment.start(), segment.vector());
+                right_distance = Vector3.Distance(ray.origin, bot_intersect);
             }
         }
         float distance = bot_distance - top_distance;
-        BlockCenter = BlockCenter + new Vector3(0, 0, distance/2);
-        float RayVectorAngleH = (-X_angle_bot - X_angle_top) / 2;
-        RayVectorV = Vector3.forward;
+        //float topAdj = BlockCenter.z + top_distance;
+        //float botAdj = BlockCenter.z - bot_distance;
+        BlockCenter = BlockCenter - new Vector3(0, 0, distance/2);
+        RayVectorAngleH = (AngleDown + AngleUp) / 2;
+
+        if (Mathf.Abs(RayVectorAngleH) > 10) RayVectorAngleV = (AngleLeft + AngleRight) / 2;
+        else RayVectorAngleV = 90;
+
+        //if (Mathf.Abs(RayVectorAngleH) > 10) RayVectorAngleH = RayVectorAngleV - 90;
+
+
+        if (RayVectorAngleV < 0) RayVectorV = Quaternion.Euler(0,RayVectorAngleV,0)*Vector3.right;
+        else RayVectorV = Quaternion.Euler(0, RayVectorAngleV, 0) * Vector3.left;
 
         RayVectorH = Quaternion.Euler(0,RayVectorAngleH,0)*Vector3.right;
         if(Mathf.Abs(RayVectorAngleH) >= 20f) {
-            RayVectorV = Quaternion.Euler(0,-90f,0) * RayVectorH;
+            //RayVectorV = Quaternion.Euler(0,-90f,0) * RayVectorH;
         }
     }
 
@@ -111,6 +146,7 @@ public class Block: MonoBehaviour {
 
     public void BlockRayButton() {
         BlockCenter = mesh.bounds.center;
+        //Instantiate(marker, BlockCenter, Quaternion.identity);
         bool isVertical = false;
         AngleCheck();
 
@@ -118,11 +154,6 @@ public class Block: MonoBehaviour {
         LeftAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, -RayVectorH, isVertical, baseLine: true),Utils.Left);
         UpAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, RayVectorV, isVertical, baseLine: true), Utils.Up);
         DownAnchor = Utils.ReturnMaximalVector(BlockRay(BlockCenter, -RayVectorV, isVertical, baseLine: true), Utils.Down);
-
-        //Utils.VectorList(shiftedVerts, RightAnchor);
-        //Utils.VectorList(shiftedVerts, LeftAnchor);
-        //Utils.VectorList(shiftedVerts, UpAnchor);
-        //Utils.VectorList(shiftedVerts, DownAnchor);
         
         Utils.Direction[] h_directions = { Utils.Right, Utils.Left};
         Utils.Direction[] v_directions = {Utils.Up, Utils.Down};
@@ -133,7 +164,7 @@ public class Block: MonoBehaviour {
     }
 
     void LeftRightSubdivide(LotInfo lot, Utils.Direction v_dir) {
-        if (lot.Frontage < 3.5f) return;
+        if (lot.Frontage < 2.7f) return;
 
         LotInfo LotL = SubdivideBlock(lot, Utils.Left, v_dir);
         LotInfo LotR = SubdivideBlock(lot, Utils.Right, v_dir);
@@ -212,7 +243,7 @@ public class Block: MonoBehaviour {
         Utils.VectorList(lotVerts, AnchorsV);
         Utils.VectorList(lotVerts, Lot.Center);
         Utils.VectorList(lotVerts, self.shiftedVerts);
-        Utils.VectorList(lotVerts, BlockCenter);
+       // Utils.VectorList(lotVerts, BlockCenter);
 
         Utils.VectorList(newPoints, left);
         Utils.VectorList(newPoints, right);
@@ -244,7 +275,7 @@ public class Block: MonoBehaviour {
 
         LotInfo newLot = new LotInfo(self,newPoints,direction,left: left,right: right,parentLot: Lot);
         
-        if(newLot.Frontage < 3) {
+        if(newLot.Frontage < 2.7) {
             GameObject LotObject = (GameObject)Instantiate(Resources.Load("Lot"));
             LotObject.GetComponent<Lot>().init(newLot);
             LotObject.transform.parent = transform;
@@ -334,10 +365,12 @@ public class LotInfo {
     public Vector3 Left;
     public Vector3 Right;
     public Vector3 Direction;
+    public Vector3 LotCenter;
     public LotInfo ParentLot;
     public float Frontage;
     public Segment RoadSegment;
     public List<Vector3> RoadFacingVerts;
+    public Vector3 RoadPoint;
 
     public LotInfo(Block block,List<Vector3> lotVerts, Vector3 direction,Vector3 left, Vector3 right, bool parentBlock = false, LotInfo parentLot = null) {
         ParentBlock = block;
@@ -351,13 +384,22 @@ public class LotInfo {
 
         List<Segment> segments = block.boundingSegments;
         RoadFacingVerts = new List<Vector3>();
-        Vector3 _dir = direction;
+        LotCenter = Utils.AverageVectors(lotVerts);
+        Vector3 _dir = new Vector3(0,0, (LotCenter - ParentBlock.BlockCenter).z).normalized * 3f;
+        Direction = _dir;
+        if(_dir == Vector3.zero) {
+            //Debug.Log("center " + LotCenter + " parent " + ParentBlock.BlockCenter);
+        }
+
 
         for (int i = 0; i < lotVerts.Count; i++) {
             for (int j = 0; j < segments.Count; j++) {
                 Vector3 A2 = lotVerts[i] + _dir;
                 if(Math3d.AreLineSegmentsCrossing(lotVerts[i], A2, segments[j].start(), segments[j].end())) {
                     RoadFacingVerts.Add(lotVerts[i]);
+                    RoadSegment = segments[j];
+                    Math3d.LineLineIntersection(out RoadPoint, 
+                        lotVerts[i], A2, segments[j].start(), segments         [j].end());
                 }
             }
         }

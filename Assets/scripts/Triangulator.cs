@@ -28,14 +28,10 @@ public class Triangulator {
         int nv = n;
         int count = 2 * nv;
 
-        Debug.Log(count + "count");
-        Debug.Log(n + "n");
-        Debug.Log(nv + "nv");
-
         for (int m = 0, v = nv - 1; nv > 2;) {
             if ((count--) <= 0) {
 
-                Debug.Log(count);
+
                 return indices.ToArray();
             }
 

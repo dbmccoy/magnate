@@ -81,16 +81,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\NodeObj.cs" />
     <Compile Include="Assets\resources\Ed_Btn_Node.cs" />
     <Compile Include="Assets\resources\ObjectBuilderEditor.cs" />
     <Compile Include="Assets\scripts\Block.cs" />
     <Compile Include="Assets\scripts\BlockMap.cs" />
+    <Compile Include="Assets\scripts\Building.cs" />
     <Compile Include="Assets\scripts\ClockwiseComparer.cs" />
+    <Compile Include="Assets\scripts\ContextInfo.cs" />
     <Compile Include="Assets\scripts\EarClipper.cs" />
+    <Compile Include="Assets\scripts\Entity.cs" />
     <Compile Include="Assets\scripts\InspectorButton.cs" />
     <Compile Include="Assets\scripts\Intersection.cs" />
     <Compile Include="Assets\scripts\Lot.cs" />
     <Compile Include="Assets\scripts\Math3d.cs" />
+    <Compile Include="Assets\scripts\MouseDrag.cs" />
+    <Compile Include="Assets\scripts\MouseHover.cs" />
     <Compile Include="Assets\scripts\Node.cs" />
     <Compile Include="Assets\scripts\NodeMap.cs" />
     <Compile Include="Assets\scripts\NodeWindow.cs" />
