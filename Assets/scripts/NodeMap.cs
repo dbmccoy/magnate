@@ -41,8 +41,8 @@ public class NodeMap : MonoBehaviour {
         nodes.Add(node);
         if (!road1.nodes.Contains(node)) road1.nodes.Add(node);
         if (!road2.nodes.Contains(node)) road2.nodes.Add(node);
-        if (seg1 != null) seg1.AddIntersection(node);
-        if (seg2 != null) seg2.AddIntersection(node);
+        //if (seg1 != null) seg1.AddIntersection(node);
+        //if (seg2 != null) seg2.AddIntersection(node);
         if (seg1 != null && seg2 != null) node.Init(new List<Segment> { seg1, seg2 });
         else node.Init();
     }
@@ -84,7 +84,7 @@ public class NodeMap : MonoBehaviour {
 
 
         StartCoroutine(IntersectionsAtEndOfFrame());
-        Debug.Log("now");
+
     }
 
     public List<Road> SortRoads(bool EW) { //NOT DONE
@@ -101,9 +101,9 @@ public class NodeMap : MonoBehaviour {
     }
 
     IEnumerator IntersectionsAtEndOfFrame() {
-        Debug.Log("start");
+
         yield return new WaitForEndOfFrame();
-        Debug.Log("go");
+
         PopulateNodeMap();
     }
 
@@ -137,7 +137,6 @@ public class NodeMap : MonoBehaviour {
             i = Random.Range(0, possibleStreetNames.Count - 1);
         }
         road.nodes.ForEach(x => x.roads.Add(road));
-       // Debug.Log("road named " + roadname);
         road.NameRoad(roadname);
     }
 
@@ -161,11 +160,9 @@ public class NodeMap : MonoBehaviour {
         if (nodes.Count == 0) return false;
         foreach (var item in nodes) {
             if(item.transform.position == pos) {
-                //Debug.Log("intersection already exists");
                 return true;
             }
         }
-        //Debug.Log("intersection position open");
         return false;
     }
 
@@ -212,7 +209,10 @@ public class NodeMap : MonoBehaviour {
         //Debug.Log(nodeSegments.Count + " road nodes in NodeMap");
         CleanUpIntersections();
         SetNodeSegments();
-        roads.ToList().ForEach(x => x.nodes = x.OrderNodes());
+        roads.ToList().ForEach(x => {
+            x.nodes = x.OrderNodes();
+            x.RefreshSegments();
+            });
     }
 
     [InspectorButton("SetNodeSegments")]
@@ -273,21 +273,7 @@ public class NodeMap : MonoBehaviour {
 
     }
 
-    [InspectorButton("AssignLotAddresses")]
-    public bool LotAddresses;
 
-    public void AssignLotAddresses() {
-        roads.ToList().ForEach(x => {
-            int number = 1;
-            x.nodes.ForEach(i => {
-                if (x.nodes.IndexOf(i) == x.nodes.Count - 2) return;
-                x.GetSegmentFromStartNode(i).Lots.ForEach(j => {
-                j.Address =number + " " + x.roadName;
-                number = number + 1;
-                });
-            });
-        });
-    }
 
     [InspectorButton("PathTest")]
     public bool pathTest;

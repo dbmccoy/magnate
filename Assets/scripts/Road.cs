@@ -12,6 +12,7 @@ public class Road : MonoBehaviour {
     public Vector3[] points_v;
     public List<Segment> segments;
     public List<SegmentCollider> segmentCols;
+    public List<Lot> Lots;
     public Node StartNode;
     public Node EndNode;
     public List<Node[]> nodePairs;
@@ -54,19 +55,12 @@ public class Road : MonoBehaviour {
 
     public void GenerateNodeSegments()
     {
-        //Debug.Log("now I won't null ref!");
         if (nodePairs.Count == 0) return;
         foreach (var pair in nodePairs) {
             if (!nodesToSegment.ContainsKey(pair)) {
                 Segment segment = new Segment(pair[0], pair[1], GetComponent<Road>());
                 nodesToSegment.Add(pair, segment);
                 AddSegment(segment);
-                /*foreach (var n in pair) {
-                    if(n.segments == null || !n.segments.Contains(segment)) {
-                        if (n.segments == null) n.segments = new List<Segment>();
-                        n.segments.Add(segment);
-                    }
-                }*/
             }
         }
     }
@@ -75,15 +69,6 @@ public class Road : MonoBehaviour {
         Node start = segment.startNode;
         Node end = segment.endNode;
         segment.endNode = node;
-        //segment.nodes = new List<Node>{ start, node };
-        /*segment.nodes.ForEach(x => {
-        if (!x.segments.Contains(segment)) // ADD ADJACENT SEGMENTS
-            x.segments.Add(segment);
-            segment.nodes.ForEach(i => { // ADD ADJACENT NODES 
-                if (!x.adjNodes.Contains(i)) x.adjNodes.Add(i);
-                Debug.Log("sldfksdf");
-            });
-        });*/
         Segment newSegment = new Segment(node, end, segment.road);
         AddSegment((newSegment));
     }
@@ -94,6 +79,29 @@ public class Road : MonoBehaviour {
         segmentToCol.Add(segment, segmentCol);
         if (!segmentCols.Contains(segmentCol)) segmentCols.Add(segmentCol);
         segmentCol.Init(segment, self);
+    }
+
+    public void RefreshSegments() {
+        int i = 0;
+        segments.ForEach(x => {
+            x.startNode = nodes[i];
+            x.endNode = nodes[i + 1];
+            i++;
+        });
+    }
+
+    public void AddLot(Lot L) {
+        if(!Lots.Contains(L)) Lots.Add(L);
+    }
+
+    public void AssignLotAddresses() {
+        int i = 1;
+        segments.ForEach(x => {
+            x.Lots.ForEach(j => {
+                j.Address = i + " " + roadName;
+                i++;
+            });
+        });
     }
 
     public List<Node> OrderNodes() {
@@ -176,14 +184,6 @@ public class Road : MonoBehaviour {
             if (Selection.activeGameObject == this.gameObject) {
 
             }
-            /*line.numPositions = nodes.Count;
-            points_v = new Vector3[nodes.Count];
-
-            for (int i = 0; i < nodes.Count; i++) {
-                points_v[i] = nodes[i].transform.position;
-            }
-            //line.SetPositions(points_v);*/
-            //GenerateNodeSegments();
             segmentCols.ForEach(i => i.UpdateCollider());
         }
     }

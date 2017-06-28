@@ -8,6 +8,7 @@ using System.Linq;
 public class Lot : MonoBehaviour {
 
     public Road road;
+    public Block block;
     public Segment segment;
 
     public List<Vector3> verts;
@@ -25,17 +26,22 @@ public class Lot : MonoBehaviour {
     public Lot self;
     public string Address;
 
+    //segment ordering variables
+    public bool isLeftOfSegVector;
+    public float angleToSegStart;
+
 
 	// Use this for initialization
 	public void init(LotInfo _info) {
         self = GetComponent<Lot>();
 	    info = _info;
-	    center = info.Center;
+	    center = info.LotCenter;
 	    verts = info.LotVerts;
 	    points = info.points;
 	    left = info.Left;
 	    right = info.Right;
         direction = info.Direction;
+        block = info.ParentBlock;
 
 	    foreach (var v in verts) {
 	        //Instantiate(info.ParentBlock.marker, v, Quaternion.identity, transform);
@@ -69,15 +75,32 @@ public class Lot : MonoBehaviour {
         road = info.RoadSegment.road;
         segment = info.RoadSegment;
         RoadPoint = info.RoadPoint;
+        road.AddLot(self);
+        block.Lots.Add(self);
+        Vector2 vec = Utils.V2d(segment.start() - center);
+        
+        isLeftOfSegVector = (Utils.AngleDir(Utils.V2d(segment.vector()), vec) < 0) ? true : false;
+        angleToSegStart = Vector3.Angle(segment.vector(), segment.start() - center);
+        segDistance = DistanceToSegStart();
+        Instantiate(Resources.Load("boundingPoint"), RoadPoint, Quaternion.identity, transform);
 
-        if(RoadPoint != null)segment.AddLot(self);
+        if (RoadPoint != null)segment.AddLot(self);
 
     }
+
+    //segment ordering vars
 
     public List<float> angles;
 
     private void OnMouseDown() {
         Debug.Log("click");
+    }
+
+    public float segDistance; //DEBUG ONLY
+
+    public float DistanceToSegStart() {
+        segDistance = Vector3.Distance(RoadPoint, segment.startNode.pos());
+        return segDistance;
     }
 
     public void Build() {

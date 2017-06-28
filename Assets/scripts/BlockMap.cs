@@ -44,7 +44,12 @@ public class BlockMap : MonoBehaviour {
             Vector3 _pos = positions[i]; //Random.insideUnitSphere * Random.Range(0f, 50f); _pos.y = 0;
             QueryBlockBounds(_pos);
         }
-
+        //ORDER LOTS WITHIN EACH SEGMENT AND ADD ADDRESSES
+        nodeMap.roads.ToList().ForEach(x => {
+            x.nodes = x.OrderNodes();
+            x.segments.ForEach(i => i.OrderedLots());
+        });
+        nodeMap.roads.ToList().ForEach(x => x.AssignLotAddresses());
     }
 
     void QueryBlockBounds(Vector3 pos, int ray_count = 12, float distance = 50f) {
@@ -71,7 +76,6 @@ public class BlockMap : MonoBehaviour {
 
     void CreateBlock(Vector3 _pos, List<Segment> segments) {
         Block newBlock = Instantiate(blockPrefab, transform);
-        //newBlock.transform.position = _pos;
         newBlock.InitBlock(segments);
         blocks.Add(newBlock);
         newBlock.BlockRayButton();
@@ -93,25 +97,6 @@ public class BlockMap : MonoBehaviour {
         return hitSegment;
     }
 }
-        //old segment to segment logic
-            /*if(Math3d.AreLineSegmentsCrossing(newSegment.start, newSegment.end, nodeMap.nodeSegments[i].start, nodeMap.nodeSegments[i].end)) {
-                if (!boundingSegments.Contains(nodeSegments[i])) {
-                    Vector3 intersectionPoint;
-                    Math3d.LineLineIntersection(out intersectionPoint, newSegment.start, newSegment.vector,
-                                                nodeMap.nodeSegments[i].start, nodeMap.nodeSegments[i].vector);
-                    Debug.DrawLine(newSegment.start, intersectionPoint, Color.blue);
-                    boundingSegments.Add(nodeSegments[i]);
-
-                }
-                Debug.Log(nodeSegments[i].road.name);
-                    
-                break;              
-            }*/
-        
-        //instantiate a new block using the segments 
-        //if (boundingSegments.Count >= 3) {
-
-        //}
     
 
 

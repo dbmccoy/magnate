@@ -9,6 +9,7 @@ using UnityEditorInternal;
 
 public class Block: MonoBehaviour {
 
+    public List<Lot> Lots;
     public List<Segment> boundingSegments = new List<Segment>();
     List<Node> nodes = new List<Node>();
     public List<Road> boundingRoads;
@@ -385,7 +386,7 @@ public class LotInfo {
         List<Segment> segments = block.boundingSegments;
         RoadFacingVerts = new List<Vector3>();
         LotCenter = Utils.AverageVectors(lotVerts);
-        Vector3 _dir = new Vector3(0,0, (LotCenter - ParentBlock.BlockCenter).z).normalized * 3f;
+        Vector3 _dir = new Vector3(0,0, (LotCenter - ParentBlock.BlockCenter).z).normalized * 10f;
         Direction = _dir;
         if(_dir == Vector3.zero) {
             //Debug.Log("center " + LotCenter + " parent " + ParentBlock.BlockCenter);
@@ -395,11 +396,11 @@ public class LotInfo {
         for (int i = 0; i < lotVerts.Count; i++) {
             for (int j = 0; j < segments.Count; j++) {
                 Vector3 A2 = lotVerts[i] + _dir;
-                if(Math3d.AreLineSegmentsCrossing(lotVerts[i], A2, segments[j].start(), segments[j].end())) {
-                    RoadFacingVerts.Add(lotVerts[i]);
+                if (Math3d.AreLineSegmentsCrossing(LotCenter, LotCenter + _dir, segments[j].start(), segments[j].end())) {
+                   // RoadFacingVerts.Add(lotVerts[i]);
                     RoadSegment = segments[j];
-                    Math3d.LineLineIntersection(out RoadPoint, 
-                        lotVerts[i], A2, segments[j].start(), segments         [j].end());
+                    if(Math3d.LineLineIntersection(out RoadPoint,
+                        LotCenter, _dir, segments[j].start(), segments[j].vector())) return;
                 }
             }
         }

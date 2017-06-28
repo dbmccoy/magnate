@@ -24,13 +24,48 @@ public class Segment {
 
     public void AddLot(Lot L) {
         if (!Lots.Contains(L)) Lots.Add(L);
+    }
 
-        Dictionary<float, Lot> UnorderedLots = new Dictionary<float, Lot>();
-        Lots.ForEach(x => {
-            //UnorderedLots.Add(Vector3.Distance(x.RoadPoint, startNode.pos()),x);
-        });
-        //SortedDictionary<float, Lot> OrderedLots = new SortedDictionary<float, Lot>(UnorderedLots);
-        //Lots = UnorderedLots.Values.ToList();
+    public List<Lot> OrderedLots()//
+    {
+        Lots = Lots.OrderBy(x => x.segDistance).ToList();
+        //List<Order> SortedList = objListOrder.OrderBy(o => o.OrderDate).ToList();
+
+        List<Lot> LotsL = Lots.Where(x => x.isLeftOfSegVector == true).ToList();
+        List<Lot> LotsR = Lots.Where(x => x.isLeftOfSegVector == false).ToList();
+        List<Lot> LotsFinal = new List<Lot>();
+
+        bool tick = true;
+        while (LotsL.Count > 0 || LotsR.Count > 0) {
+            float diffL = (LotsL.Count > 0) ? LotsL[0].DistanceToSegStart() : 1000f;
+            float diffR = (LotsR.Count > 0) ? LotsR[0].DistanceToSegStart() : 1000f;
+            float diffLtoR = diffR - diffL;
+
+            if (tick == true || LotsR.Count == 0) {
+                if(diffLtoR > -2f || LotsR.Count == 0) {
+                    LotsFinal.Add(LotsL[0]);
+                    LotsL.Remove(LotsL[0]);
+                }
+                else {
+                    LotsFinal.Add(LotsR[0]);
+                    LotsR.Remove(LotsR[0]);
+                }
+                tick = false;
+            }
+            if(tick == false || LotsL.Count == 0) {
+                if(diffLtoR < 2f || LotsL.Count == 0) {
+                    LotsFinal.Add(LotsR[0]);
+                    LotsR.Remove(LotsR[0]);
+                }
+                else {
+                    LotsFinal.Add(LotsL[0]);
+                    LotsL.Remove(LotsL[0]);
+                }
+                tick = true;
+            }
+        }
+        Lots = LotsFinal;
+        return LotsFinal;
     }
 
     public float Angle() {
@@ -50,15 +85,7 @@ public class Segment {
         if (U.x < D.x) return Vector3.Angle(vec, Vector3.left);
         else return Vector3.Angle(vec, Vector3.left);
     }
-
-    public void AddIntersection(Node _node) {
-        /*if (!nodes.Contains(_node)) {
-            nodes.Add(_node);
-            intersectionCount = nodes.Count;
-            //Debug.Log(road.roadName+" "+_node.transform.name);
-        }*/
-    }
-
+    
     public Vector3 start() {
         return startNode.pos();
     }
@@ -70,18 +97,4 @@ public class Segment {
     public Vector3 vector() {
         return start() - end();
     }
-
-    /*public Segment(Vector3 _start, Vector3 _end, Road _road) {
-        start = _start;
-        end = _end;
-        vector = _start - _end;
-        road = _road;
-    }*/
-
-    /*public Segment(Vector3 _start, Vector3 _end) {
-        start = _start;
-        end = _end;
-        vector = _start - _end;
-    }*/
-
 }
