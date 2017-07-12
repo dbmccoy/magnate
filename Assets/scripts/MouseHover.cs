@@ -17,15 +17,23 @@ public class MouseHover : MonoBehaviour {
     public Transform hover;
     public GameObject ind;
     public ContextInfo contextInfo;
+    public ContextMenu contextMenu;
+    public Navigator nav; //TEMPORARY FOR PRESENTATION
     public bool mouseDown;
-    
+    public GameObject X;
+    public Node StartNode;
 
 	// Use this for initialization
 	void Start () {
 		
 	}
 
+    Node selectedNode;
+
+
     // Update is called once per frame
+    List<Node> path = new List<Node>();
+
     void FixedUpdate() {
         //mousePos = Input.mousePosition;
         //mousePos.z = 1000f;
@@ -64,11 +72,39 @@ public class MouseHover : MonoBehaviour {
                 contextInfo.panel.SetActive(true);
                 contextInfo.Position(hit.point + new Vector3(0, 0, 5));
 
-                if (hit.transform.tag == "Lot") contextInfo.
-                    PrintLot(hit.transform.GetComponent<Lot>());
+                //if (hit.transform.tag == "Lot") contextInfo.
+                //PrintLot(hit.transform.GetComponent<Lot>());
+                Node goal = null;
+                if (hit.transform.tag == "Node") {
+                    if (goal == null || hit.transform != goal.transform)
+                    { 
+                        goal = hit.transform.GetComponent<Node>();
+                        X.transform.position = hit.transform.GetComponent<Node>().pos();
+                        if (path.Count > 0) path.ForEach(x => x.CameFromObj.GetComponentInChildren<SpriteRenderer>().material.color = Color.white);
+                        path = StartNode.CachePath(hit.transform.GetComponent<Node>());
+                        path.ForEach(x => x.CameFromObj.GetComponentInChildren<SpriteRenderer>().material.color = Color.blue);
+                        
+                        contextInfo.SetText(NodeMap.instance.ReturnCost(StartNode, goal).ToString());
+                        Debug.Log(NodeMap.instance.ReturnCost(StartNode, goal));
+                    }
 
-                if (hit.transform.tag == "Node") contextInfo.
-                     PrintNode(hit.transform.GetComponent<Node>());
+                    if (Input.GetMouseButtonDown(0)) selectedNode = hit.transform.GetComponent<Node>();
+                    if(selectedNode && hit.transform.GetComponent<Node>() != selectedNode && (hit.transform.GetComponent<Node>() != goal) )
+                    {
+                        
+                        if (nav.GoalNode != null && nav.GoalNode == goal) return;
+                        //List<Node> path = selectedNode.GetPathTo(goal);
+                        nav.CurrentNode = selectedNode;
+                        nav.SetGoal(goal);
+                        nav.transform.position = selectedNode.pos();
+                    }
+                    //contextInfo.
+                     //PrintNode(hit.transform.GetComponent<Node>());
+                 }
+                if (Input.GetMouseButtonUp(0))
+                {
+                    contextMenu.Open(hit.transform);
+                }
 
                 break;
             }

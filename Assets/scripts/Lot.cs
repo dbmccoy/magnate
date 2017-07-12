@@ -12,6 +12,9 @@ public class Lot : MonoBehaviour {
     public Segment segment;
 
     public List<Vector3> verts;
+    public List<Vector3> roadFacingVerts;
+    public List<Vector3> buildableVerts;
+    public List<Edge> edges;
     public List<Vector3> points;
     public Vector3 center;
     public Vector3 left;
@@ -42,6 +45,7 @@ public class Lot : MonoBehaviour {
 	    right = info.Right;
         direction = info.Direction;
         block = info.ParentBlock;
+        roadFacingVerts = info.RoadFacingVerts;
 
 	    foreach (var v in verts) {
 	        //Instantiate(info.ParentBlock.marker, v, Quaternion.identity, transform);
@@ -60,17 +64,12 @@ public class Lot : MonoBehaviour {
         }
         SortedDictionary<float, Vector3> sortedVertSortDict = new SortedDictionary<float, Vector3>(vertSortDict);
         angles = sortedVertSortDict.Keys.ToList();
-        AdjVerts = sortedVertSortDict.Values.ToList();
+        verts = sortedVertSortDict.Values.ToList();
 
 
-	    arr = Utils.V2dArray(AdjVerts);
+	    arr = Utils.V2dArray(verts);
 
-
-     //   Array.Sort(arr,new ClockwiseComparer(origin));
-	    //for (int i = 0; i < arr.Length; i++) {
-     //       AdjVerts.Add(new Vector3(arr[i].x,0,arr[i].y));
-	    //}
-	    SetMesh(AdjVerts,arr);
+	    SetMesh(verts,arr);
         col = gameObject.AddComponent<MeshCollider>();
         road = info.RoadSegment.road;
         segment = info.RoadSegment;
@@ -82,7 +81,18 @@ public class Lot : MonoBehaviour {
         isLeftOfSegVector = (Utils.AngleDir(Utils.V2d(segment.vector()), vec) < 0) ? true : false;
         angleToSegStart = Vector3.Angle(segment.vector(), segment.start() - center);
         segDistance = DistanceToSegStart();
-        Instantiate(Resources.Load("boundingPoint"), RoadPoint, Quaternion.identity, transform);
+
+        edges = new List<Edge>(); //CREATE LOT EDGES
+        for (int i = 0; i < verts.Count-1; i++)
+        {
+            edges.Add(new Edge(new Vector3[]{ verts[i], verts[i + 1] }));
+        }
+        edges.Add(new Edge(new Vector3[] { verts[verts.Count - 1], verts[0] }));
+
+        //Instantiate(Resources.Load("boundingPoint"), RoadPoint, Quaternion.identity, transform);
+        //Instantiate(Resources.Load("boundingPoint"), segment.StartWithOffset(center),Quaternion.identity,transform  );
+        //Instantiate(Resources.Load("boundingPoint"), segment.EndWithOffset(center), Quaternion.identity, transform);
+
 
         if (RoadPoint != null)segment.AddLot(self);
 
@@ -103,17 +113,47 @@ public class Lot : MonoBehaviour {
         return segDistance;
     }
 
+    //public List<Vector3> ReturnBuildableVerts()
+    //{
+    //    float f = info.Zoning.FrontSetback;
+    //    float s = info.Zoning.SideSetback;
+    //    Edge frontage;
+    //    edges.ForEach(x =>
+    //    {
+    //        info.ParentBlock.boundingSegments.ForEach(j =>
+    //        {
+    //            Vector3 normal = (x.start + x.vector) / 2 + (x.Normal(center) * 10f);
+    //            if (Math3d.AreLineSegmentsCrossing((x.start + x.vector) / 2, normal, j.start(), j.end()))
+    //            {
+    //                frontage = x;
+    //                return;
+    //            }
+    //        });
+    //    });
+
+    //    //edges.ForEach(x =>
+    //    //{
+    //    //    edges.ForEach(j =>
+    //    //    {
+
+    //    //        Vector3 hit;
+    //    //        if (Math3d.LineLineIntersection(out hit, x.StartOffset(center,), x.vector, j.StartOffset, j.vector))
+    //    //        {
+
+    //    //        }
+    //    //    });
+    //    //});
+        
+    //}
+
     public void Build() {
-        GameObject building = (GameObject)Instantiate(Resources.Load("building"), GetComponent<MeshFilter>().mesh.bounds.center, Quaternion.identity);
-        building.transform.SetParent(transform);
+        GameObject building = (GameObject)Instantiate(Resources.Load("buildings/house_test_1"), center, Quaternion.LookRotation(direction),transform);
+        Debug.Log("call");
     }
 
     public Vector3[] MeshVerts;
     public int[] triangles;
     public Vector2[] arr;
-    public List<Vector3> AdjVerts;
-    
-
 
     void SetMesh(List<Vector3> _verts, Vector2[] v2d) {
 
@@ -137,10 +177,10 @@ public class Lot : MonoBehaviour {
         filter.mesh = mesh;
 
         LineRenderer lr = gameObject.AddComponent<LineRenderer>();
-        lr.numPositions = AdjVerts.Count + 1;
+        lr.positionCount = verts.Count + 1;
         Vector3 offset = new Vector3(0,.01f,0);
         List<Vector3> lrVerts = new List<Vector3>();
-        AdjVerts.ForEach(i => lrVerts.Add(i + offset));
+        verts.ForEach(i => lrVerts.Add(i + offset));
         lrVerts.Add(lrVerts[0]);
         lr.SetPositions(lrVerts.ToArray());
         lr.SetWidth(.1f, .1f);
@@ -154,4 +194,37 @@ public class Lot : MonoBehaviour {
     void Update () {
 		
 	}
+}
+
+[System.Serializable]
+public class Edge
+{
+    public Vector3 start;
+    public Vector3 end;
+    public Vector3 vector;
+
+    public Edge(Vector3[] pair)
+    {
+        start = pair[0]; end = pair[1];
+        vector = start - end;
+    }
+
+    public Vector3 Normal(Vector3 lotPos)
+    {
+        return (lotPos - (start + vector) / 2).normalized;
+    }
+
+    public Vector3 StartOffset(Vector3 lotPos, float offset = 0)
+    {
+        var left = start + (Quaternion.Euler(0, 90, 0) * vector).normalized * offset;
+        var right = start + (Quaternion.Euler(0, -90, 0) * vector).normalized * offset;
+        return (Vector3.Distance(lotPos, left) > Vector3.Distance(lotPos, right)) ? right : left;
+    }
+
+    public Vector3 EndOffset(Vector3 lotPos, float offset = 0)
+    {
+        var left = end + (Quaternion.Euler(0, 90, 0) * vector).normalized * offset;
+        var right = end + (Quaternion.Euler(0, -90, 0) * vector).normalized * offset;
+        return (Vector3.Distance(lotPos, left) > Vector3.Distance(lotPos, right)) ? right : left;
+    }
 }

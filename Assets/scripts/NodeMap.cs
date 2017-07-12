@@ -15,11 +15,21 @@ public class NodeMap : MonoBehaviour {
     public List<string> possibleStreetNames;
     public List<string> currentStreetNames;
     public Node node_prefab;
+
+    //PATHFINDING
+    public NodeGraph graph;
+
     //public List<NewNode> allNodes;
 
     // Use this for initialization
-    void Start () {
+    void Awake () {
+        //graph = new NodeGraph();
 	}
+
+    private void Start()
+    {
+        //nodes.ForEach(x => x.CachePaths(nodes));
+    }
 
     private static NodeMap _nodeMap;
 
@@ -43,8 +53,8 @@ public class NodeMap : MonoBehaviour {
         if (!road2.nodes.Contains(node)) road2.nodes.Add(node);
         //if (seg1 != null) seg1.AddIntersection(node);
         //if (seg2 != null) seg2.AddIntersection(node);
-        if (seg1 != null && seg2 != null) node.Init(new List<Segment> { seg1, seg2 });
-        else node.Init();
+        //if (seg1 != null && seg2 != null) node.Init(new List<Segment> { seg1, seg2 });
+        node.Init();
     }
 
 
@@ -273,7 +283,11 @@ public class NodeMap : MonoBehaviour {
 
     }
 
-
+    public NodeGraph Graph()
+    {
+        if (graph == null) graph = new NodeGraph();
+        return graph;
+    }
 
     [InspectorButton("PathTest")]
     public bool pathTest;
@@ -282,19 +296,121 @@ public class NodeMap : MonoBehaviour {
         ReturnPath(nodes[13], nodes[29]);
     }
 
-    public List<Node> ReturnPath(Node start, Node goal) {
-        NodeGraph graph = new NodeGraph();
-        var search = new DjNodeSearch(graph, start, goal);
+    public List<Node> ReturnPath(Node start, Node goal, bool arrows = false, bool nodes = false, bool lazy = true) {
+        var search = new BreadthNodeSearch(Graph(), start, goal, arrows, nodes, lazy);  //sdaasdl;fkjsdl;fkjsdl;fkjsd;lfkjsdl;fkjsdfl;kj
         Node current = goal;
         List<Node> path = new List<Node>();
         while (current != start) {
             path.Add(current);
+            Node n1 = current;
             current = search.cameFrom[current];
+            Node n2 = current;
+            NodeMap.instance.AddToVizQueue(n1, n2);
+            current.CostSoFar = search.costSoFar[current];
         }
         path.Reverse();
-        Debug.Log(path.Count);
-        path.ForEach(x => Instantiate(Resources.Load("boundingPoint"),x.pos() + new Vector3(0,1,0), Quaternion.identity, transform));
+        //NodeMap.instance.kickoff();
+        //path.ForEach(x => Instantiate(Resources.Load("boundingPoint"),x.pos() + new Vector3(0,1,0), Quaternion.identity, transform));
         return path;
+    }
+
+    public float ReturnCost(Node start, Node goal, bool arrows = false, bool nodes = false, bool lazy = true)
+    {
+        var search = new AStarNodeSearch(Graph(), start, goal, arrows, nodes, lazy);  //sdaasdl;fkjsdl;fkjsdl;fkjsd;lfkjsdl;fkjsdfl;kj
+        Node current = goal;
+        List<Node> path = new List<Node>();
+        while (current != start)
+        {
+            path.Add(current);
+            Node n1 = current;
+            current = search.cameFrom[current];
+            Node n2 = current;
+            NodeMap.instance.AddToVizQueue(n1, n2);
+            current.CostSoFar = search.costSoFar[current];
+        }
+        path.Reverse();
+        //NodeMap.instance.kickoff();
+        //path.ForEach(x => Instantiate(Resources.Load("boundingPoint"),x.pos() + new Vector3(0,1,0), Quaternion.identity, transform));
+        return search.costSoFar[goal];
+    }
+
+    List<Node[]> VizQueue = new List<Node[]>();
+
+    public void AddToVizQueue(Node cameFrom, Node next)
+    {
+        Vector3 p1 = cameFrom.pos(), p2 = next.pos();
+        bool ok = true;
+        foreach (var item in VizQueue)
+        {
+            if (item[0].pos() == p1 && item[1].pos() == p2) ok = false;
+        }
+        if(ok == true) VizQueue.Add(new Node[] { cameFrom, next });
+    }
+
+    public void CameFromMarker(Node cameFrom, Node next)
+    {
+        Vector3 pos = (next.pos() + cameFrom.pos()) / 2;
+        GameObject arrow = (GameObject)Instantiate(Resources.Load("arrow"), pos + Vector3.up * .1f, Quaternion.identity);
+        next.CameFromObj = arrow;
+        arrow.transform.LookAt(cameFrom.pos());
+    }
+
+    public void kickoff()
+    {
+        StartCoroutine(ArrowViz(.1f, VizQueue));
+    }
+
+    public void startNodeViz()
+    {
+        StartCoroutine(NodeViz(.1f, VizQueue));
+    }
+
+    public IEnumerator ArrowViz(float t, List<Node[]> q)
+    {
+        Node[][] queue = q.ToArray();
+
+
+        foreach (var item in queue)
+        {
+            yield return new WaitForSeconds(.02f);
+
+            CameFromMarker(item[0], item[1]);
+        }
+    }
+
+    public IEnumerator NodeViz(float t, List<Node[]> q)
+    {
+        Node[][] queue = q.ToArray();
+        List<Node> touched = new List<Node>();
+
+        foreach (var item in queue)
+        {
+            yield return new WaitForSeconds(.05f);
+
+            item[0].GetComponent<MeshRenderer>().material.color = Color.green;
+            touched.Add(item[0]);
+            if(item[1].adjNodes.Count == 1)
+            {
+                item[1].GetComponent<MeshRenderer>().material.color = Color.green;
+                touched.Add(item[1]);
+            }
+            StartCoroutine(AdjNodesHelperViz(item[0], .05f));
+        }
+    }
+
+    IEnumerator AdjNodesHelperViz(Node n, float t)
+    {
+        List<Node> Adj = new List<Node>();
+
+        n.adjNodes.ForEach(x => {
+            Adj.Add(x);
+        });
+
+        foreach (var item in Adj)
+        {
+            yield return new WaitForSeconds(.05f);
+            if(item.GetComponent<MeshRenderer>().material.color != Color.green) item.GetComponent<MeshRenderer>().material.color = Color.yellow;
+        }
     }
 }
 
@@ -305,6 +421,11 @@ public class NodeGraph {
         nodes = map.nodes;
     }
     public Dictionary<Node,List<Node>> edges = new Dictionary<Node,List<Node>>();
+
+    public float Cost(Node a, Node b)
+    {
+        return b.Cost;
+    }
 
     public List<Node> Neighbors(Node node) {
         return node.adjNodes;
@@ -355,34 +476,130 @@ public class PriorityQueue {
     }
 }
 
-public class DjNodeSearch {
+public class BreadthNodeSearch    {
     public Dictionary<Node, Node> cameFrom
         = new Dictionary<Node, Node>();
     public Dictionary<Node, float> costSoFar
         = new Dictionary<Node, float>();
 
-    public DjNodeSearch(NodeGraph graph, Node start, Node goal){
+    public BreadthNodeSearch(NodeGraph graph, Node start, Node goal, bool arrows = false, bool nodes = false, bool lazy =  true){
+        var frontier = new PriorityQueue();
+        frontier.Enqueue(start, 0);
+
+
+        cameFrom[start] = start;
+        costSoFar[start] = 0;
+        while (frontier.Count > 0) {
+            var current = frontier.Dequeue();
+
+            if (current.Equals(goal) && lazy) {
+                break;
+            }
+            foreach(var next in graph.Neighbors(current)) {
+                    float newCost = costSoFar[current] + 1; //graph.Cost(current, next);
+                    if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
+                    {
+                        costSoFar[next] = newCost;
+                        frontier.Enqueue(next, 1);
+                        cameFrom[next] = current;
+                        //next.CameFromMarker(current.pos());
+                        if(arrows || nodes) NodeMap.instance.AddToVizQueue(current, next); //vizualization
+                    }
+            }
+        }
+        if (arrows) NodeMap.instance.kickoff();
+        if (nodes) NodeMap.instance.startNodeViz();
+    }
+
+}
+
+public class WeightedNodeSearch
+{
+    public Dictionary<Node, Node> cameFrom
+        = new Dictionary<Node, Node>();
+    public Dictionary<Node, float> costSoFar
+        = new Dictionary<Node, float>();
+
+    public WeightedNodeSearch(NodeGraph graph, Node start, Node goal, bool arrows = false, bool nodes = false, bool lazy = true)
+    {
+        var frontier = new PriorityQueue();
+        frontier.Enqueue(start, 0);
+
+
+        cameFrom[start] = start;
+        costSoFar[start] = 0;
+        while (frontier.Count > 0)
+        {
+            var current = frontier.Dequeue();
+
+            if (current.Equals(goal) && lazy)
+            {
+                break;
+            }
+            foreach (var next in graph.Neighbors(current))
+            {
+                float newCost = costSoFar[current] + graph.Cost(current, next); //graph.Cost(current, next);
+                if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
+                {
+                    costSoFar[next] = newCost;
+                    float priority = newCost;
+                    frontier.Enqueue(next, newCost);
+                    cameFrom[next] = current;
+                    //next.CameFromMarker(current.pos());
+                    if (arrows || nodes) NodeMap.instance.AddToVizQueue(current, next); //vizualization
+                }
+            }
+        }
+        if (arrows) NodeMap.instance.kickoff();
+        if (nodes) NodeMap.instance.startNodeViz();
+    }
+
+}
+
+public class AStarNodeSearch
+{
+    public Dictionary<Node, Node> cameFrom
+        = new Dictionary<Node, Node>();
+    public Dictionary<Node, float> costSoFar
+        = new Dictionary<Node, float>();
+
+    public static float Heuristic(Node a, Node b)
+    {
+        //return (Mathf.Abs(a.pos().x - b.pos().x) + Mathf.Abs(a.pos().z - b.pos().z));
+        return Vector3.Distance(a.pos(), b.pos());
+    }
+
+    public AStarNodeSearch(NodeGraph graph, Node start, Node goal, bool arrows = false, bool nodes = false, bool lazy = true)
+    {
         var frontier = new PriorityQueue();
         frontier.Enqueue(start, 0);
 
         cameFrom[start] = start;
         costSoFar[start] = 0;
-
-        while (frontier.Count > 0) {
+        while (frontier.Count > 0)
+        {
             var current = frontier.Dequeue();
 
-            if (current.Equals(goal)) {
+            if (current.Equals(goal) && lazy)
+            {
                 break;
             }
-
-            foreach(var next in graph.Neighbors(current)) {
-                float newCost = costSoFar[current] + 1; //graph.Cost(current, next);
-                if(!costSoFar.ContainsKey(next) || newCost < costSoFar[next]) {
+            foreach (var next in graph.Neighbors(current))
+            {
+                float newCost = costSoFar[current] + graph.Cost(current, next); //graph.Cost(current, next);
+                if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
+                {
                     costSoFar[next] = newCost;
-                    frontier.Enqueue(next, 1);
+                    float priority = newCost + Heuristic(goal, next);
+                    frontier.Enqueue(next, priority);
                     cameFrom[next] = current;
+                    //next.CameFromMarker(current.pos());
+                    if (arrows || nodes) NodeMap.instance.AddToVizQueue(current, next); //vizualization
                 }
             }
         }
+        if (arrows) NodeMap.instance.kickoff();
+        if (nodes) NodeMap.instance.startNodeViz();
     }
+
 }

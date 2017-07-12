@@ -188,28 +188,33 @@ public class Block: MonoBehaviour {
         Ray ray = new Ray(origin,dir*1000f);
         ray.origin = ray.GetPoint(20f);
 
-
-        foreach (var pair in shiftedPairs) {
+        boundingSegments.ForEach(x =>
+        {
             Vector3 intersection;
 
-            //i'm so so so so so sorry for this
-            if (Math3d.AreLineSegmentsCrossing(ray.origin, origin, pair[0], pair[1])) {
-                Math3d.LineLineIntersection(out intersection, ray.origin, ray.origin - origin, pair[0], pair[0] - pair[1]);
-               
-                if ((Mathf.Sign(dir.x) == -1 && intersection.x <= point1.x) 
-                    || (Mathf.Sign(dir.x) == 1 && intersection.x >= point1.x) 
+            if (Math3d.AreLineSegmentsCrossing(ray.origin, origin, x.StartWithOffset(origin), x.EndWithOffset(origin)))
+            {
+                Math3d.LineLineIntersection(out intersection, ray.origin, ray.origin - origin, x.StartWithOffset(origin), x.vector());
+
+                if ((Mathf.Sign(dir.x) == -1 && intersection.x <= point1.x) //WHAT THE FUCK IS THIS
+                    || (Mathf.Sign(dir.x) == 1 && intersection.x >= point1.x)
                     || (Mathf.Sign(dir.z) == 1 && vertical == true && intersection.z >= point1.z)
-                    || (Mathf.Sign(dir.z) == -1 && vertical == true && intersection.z <= point1.z)) {
+                    || (Mathf.Sign(dir.z) == -1 && vertical == true && intersection.z <= point1.z))
+                {
 
                     point1 = intersection;
                     //Debug.Log(point1);
-                    if (baseLine) {
+                    if (baseLine)
+                    {
                         //shiftedVerts.Add(intersection);
                     }
                     points.Add(point1);
                     //Instantiate(marker, point1, Quaternion.identity, this.transform);
                 }
             }
+        });
+        foreach (var pair in shiftedPairs) {
+
         }
         
         return points;
@@ -337,10 +342,25 @@ public class Block: MonoBehaviour {
     void SetBackBlock() {
         List<Vector3> newVerts = new List<Vector3>();
         Vector3 center = mesh.bounds.center;
-        foreach (var vert in verts) {
-            Vector3 v = Vector3.ClampMagnitude((vert - center), (vert - center).magnitude * .8f);
-            newVerts.Add(center + v);
-        }
+        //foreach (var vert in verts) {
+        //    Vector3 v = Vector3.ClampMagnitude((vert - center), (vert - center).magnitude * .8f);
+        //    newVerts.Add(center + v);
+        //}
+
+        boundingSegments.ForEach(x =>
+        {
+            boundingSegments.ForEach(j =>
+            {
+                if (Math3d.AreLineSegmentsCrossing(x.StartWithOffset(center), x.EndWithOffset(center), j.StartWithOffset(center), j.EndWithOffset(center)))
+                {
+                    Vector3 hit;
+                    if (Math3d.LineLineIntersection(out hit, x.StartWithOffset(center), x.vector(), j.StartWithOffset(center), j.vector()))
+                    {
+                        newVerts.Add(hit);
+                    }
+                }
+            });
+        });
 
         foreach (var segment in boundingSegments) {
             Vector3[] pair = { segment.start(), segment.end() };
@@ -356,55 +376,54 @@ public class Block: MonoBehaviour {
 
 }
 
-public class LotInfo {
-    public Block ParentBlock;
-    public Utils.Direction HorizontalDirection;
-    public Utils.Direction VerticalDirection;
-    public List<Vector3> LotVerts;
-    public List<Vector3> points;
-    public Vector3 Center;
-    public Vector3 Left;
-    public Vector3 Right;
-    public Vector3 Direction;
-    public Vector3 LotCenter;
-    public LotInfo ParentLot;
-    public float Frontage;
-    public Segment RoadSegment;
-    public List<Vector3> RoadFacingVerts;
-    public Vector3 RoadPoint;
+//public class LotInfo {
+//    public Block ParentBlock;
+//    public Utils.Direction HorizontalDirection;
+//    public Utils.Direction VerticalDirection;
+//    public List<Vector3> LotVerts;
+//    public List<Vector3> points;
+//    public Vector3 Center;
+//    public Vector3 Left;
+//    public Vector3 Right;
+//    public Vector3 Direction;
+//    public Vector3 LotCenter;
+//    public LotInfo ParentLot;
+//    public float Frontage;
+//    public Segment RoadSegment;
+//    public List<Vector3> RoadFacingVerts;
+//    public Vector3 RoadPoint;
 
-    public LotInfo(Block block,List<Vector3> lotVerts, Vector3 direction,Vector3 left, Vector3 right, bool parentBlock = false, LotInfo parentLot = null) {
-        ParentBlock = block;
-        ParentLot = parentLot;
-        LotVerts = lotVerts;
-        Direction = direction;
-        Left = left;
-        Right = right;
-        Center = (Left + Right)/2;
-        Frontage = (right.x - left.x);
+//    public LotInfo(Block block,List<Vector3> lotVerts, Vector3 direction,Vector3 left, Vector3 right, bool parentBlock = false, LotInfo parentLot = null) {
+//        ParentBlock = block;
+//        ParentLot = parentLot;
+//        LotVerts = lotVerts;
+//        Direction = direction;
+//        Left = left;
+//        Right = right;
+//        Center = (Left + Right)/2;
+//        Frontage = (right.x - left.x);
 
-        List<Segment> segments = block.boundingSegments;
-        RoadFacingVerts = new List<Vector3>();
-        LotCenter = Utils.AverageVectors(lotVerts);
-        Vector3 _dir = new Vector3(0,0, (LotCenter - ParentBlock.BlockCenter).z).normalized * 10f;
-        Direction = _dir;
-        if(_dir == Vector3.zero) {
-            //Debug.Log("center " + LotCenter + " parent " + ParentBlock.BlockCenter);
-        }
+//        List<Segment> segments = block.boundingSegments;
+//        RoadFacingVerts = new List<Vector3>();
+//        LotCenter = Utils.AverageVectors(lotVerts);
+//        Vector3 _dir = new Vector3(0,0, (LotCenter - ParentBlock.BlockCenter).z).normalized * 10f;
+//        Direction = _dir;
+//        if(_dir == Vector3.zero) {
+//            //Debug.Log("center " + LotCenter + " parent " + ParentBlock.BlockCenter);
+//        }
 
 
-        for (int i = 0; i < lotVerts.Count; i++) {
-            for (int j = 0; j < segments.Count; j++) {
-                Vector3 A2 = lotVerts[i] + _dir;
-                if (Math3d.AreLineSegmentsCrossing(LotCenter, LotCenter + _dir, segments[j].start(), segments[j].end())) {
-                   // RoadFacingVerts.Add(lotVerts[i]);
-                    RoadSegment = segments[j];
-                    if(Math3d.LineLineIntersection(out RoadPoint,
-                        LotCenter, _dir, segments[j].start(), segments[j].vector())) return;
-                }
-            }
-        }
-        //Debug.Log(RoadFacingVerts.Count);
-        //Frontage = Vector3.Distance(RoadFacingVerts[0],RoadFacingVerts[1]);
-    }
-}
+//        for (int i = 0; i < lotVerts.Count; i++) {
+//            for (int j = 0; j < segments.Count; j++) {
+//                Vector3 A2 = lotVerts[i] + _dir;
+//                if (Math3d.AreLineSegmentsCrossing(LotCenter, LotCenter + _dir, segments[j].start(), segments[j].end())) {
+//                    RoadSegment = segments[j];
+//                    if(Math3d.LineLineIntersection(out RoadPoint,
+//                        LotCenter, _dir, segments[j].start(), segments[j].vector())) return;
+//                }
+//            }
+//        }
+//        //Debug.Log(RoadFacingVerts.Count);
+//        //Frontage = Vector3.Distance(RoadFacingVerts[0],RoadFacingVerts[1]);
+//    }
+//}

@@ -12,6 +12,9 @@ public class SegmentCollider : MonoBehaviour {
     public Vector3 start;
     public Vector3 end;
 
+    public Segment rightBoundary;
+    public Segment leftBoundary;
+
     public LineRenderer line;
     [SerializeField] int segmentNumber;
     [SerializeField] BoxCollider col;

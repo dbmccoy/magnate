@@ -16,12 +16,24 @@ public class Node : MonoBehaviour {
     public List<Road> roads = new List<Road>();
     public List<Node> adjNodes = new List<Node>();
 
+    private Node self;
+
+    Dictionary<Node, List<Node>> PathCache;
+
     public enum Type {
         intersection,
         turn
     }
 
     public Type type;
+
+    private void Awake()
+    {
+        //Cost = 2;
+        self = GetComponent<Node>();
+        PathCache = new Dictionary<Node, List<Node>>();
+        //CachePaths();
+    }
 
     public void Init(List<Segment> _segments = null, Type _type = Type.turn) {
         segments = _segments;
@@ -54,8 +66,84 @@ public class Node : MonoBehaviour {
         transform.parent.GetComponent<Road>().RemoveNode(GetComponent<Node>());
     }
 
+    public List<Node> GetPathTo(Node node)
+    {
+        if (PathCache.ContainsKey(node))
+        {
+            return PathCache[node];
+        }
+        else
+        {
+            Debug.LogError("given node is not in path");
+            return null;
+        }
+    }
+
+    [InspectorButton("CachePaths")]
+    public bool cache;
+
+    public void CachePaths()
+    {
+        NodeMap.instance.nodes.ForEach(x =>
+        {
+            if (x != self)
+            {
+                //Debug.Log("wfoiwg");
+                PathCache[x] = NodeMap.instance.ReturnPath(self, x);
+            }
+        });
+
+    }
+
+    [InspectorButton("GenArrowViz")]
+    public bool arrowViz;
+    public List<Node> GenArrowViz()
+    {
+        return NodeMap.instance.ReturnPath(self, NodeMap.instance.nodes[17],arrows:true, lazy:false);
+    }
+
+    [InspectorButton("GenNodeViz")]
+    public bool nodeViz;
+    public List<Node> GenNodeViz()
+    {
+        return NodeMap.instance.ReturnPath(self, NodeMap.instance.nodes[17],nodes:true,lazy:false);
+    }
+
+
+    public List<Node> CachePath(Node n)
+    {
+        //Debug.Log(NodeMap.instance.ReturnPath(self, n).Count);
+        return NodeMap.instance.ReturnPath(self, n);
+    }
+
+    //public void CachePaths(List<Node> nodes)
+    //{
+    //    nodes.ForEach(x =>
+    //    {
+    //        if (x != self)
+    //        {
+    //            PathCache[x] = NodeMap.instance.ReturnPath(self, x);
+    //        }
+    //    });
+
+    //}
+
+    public float Cost;
+    public float CostSoFar;
+
+    public GameObject CameFromObj;
+
     void OnMouseDown() {
         Debug.Log("click");
         Selection.activeObject = this.gameObject;
+    }
+
+
+
+    public void CameFromMarker(Vector3 cameFrom)
+    {
+        Vector3 pos = (transform.position + cameFrom) / 2;
+        GameObject arrow = (GameObject)Instantiate(Resources.Load("arrow"), pos + Vector3.up*.1f, Quaternion.identity);
+        arrow.transform.LookAt(cameFrom);
     }
 }

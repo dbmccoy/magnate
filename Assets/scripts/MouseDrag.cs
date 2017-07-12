@@ -32,6 +32,7 @@ public class MouseDrag : MonoBehaviour {
         }
         if (isDragging) {
             dragVector = (LastMousePosition - MouseHover.i.mousePos);
+            dragVector.y = 0;
 
             Camera.main.transform.Translate(dragVector, Space.World);
 
@@ -40,6 +41,17 @@ public class MouseDrag : MonoBehaviour {
             LastMousePosition = mouseRay.origin - (mouseRay.direction * rayLength);
             
             //grabPoint = Camera.main.transform.position;
+        }
+
+        //zoom camera w scrollwheel
+        float scrollAmount = Mathf.Clamp(Input.GetAxis("Mouse ScrollWheel"), -.1f, .1f);
+        if(Mathf.Abs(scrollAmount) > .01f)
+        {
+            Vector3 dir = Camera.main.transform.position - MouseHover.i.mousePos;
+            if(Camera.main.transform.position.y > 200f) scrollAmount = Mathf.Clamp(Input.GetAxis("Mouse ScrollWheel"), -.1f, 0f);
+            if(Camera.main.transform.position.y < 10) scrollAmount = Mathf.Clamp(Input.GetAxis("Mouse ScrollWheel"), 0f, .1f);
+
+            Camera.main.transform.Translate(dir * scrollAmount, Space.World);
         }
         if (Input.GetMouseButtonUp(0)) {
             isDragging = false;

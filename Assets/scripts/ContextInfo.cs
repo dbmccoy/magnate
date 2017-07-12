@@ -14,13 +14,18 @@ public class ContextInfo : MonoBehaviour {
         panel = this.gameObject;
         _text = panel.GetComponentInChildren<Text>();
         rt = panel.GetComponent<RectTransform>();
-        Position(new Vector3(-5, 0, 5));
+        Position(new Vector3(-100000, 0, 5));
     }
 
     // Update is called once per frame
     void Update () {
 		
 	}
+
+    public void SetText(string s)
+    {
+        _text.text = s;
+    }
 
     public void PrintLot(Lot lot) {
         _text.text = lot.Address;

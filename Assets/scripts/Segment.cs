@@ -12,14 +12,15 @@ public class Segment {
     public int intersectionCount;
     public Road road;
     public List<Lot> Lots;
+    public float Width;
 
-    public Segment(Node _startNode, Node _endNode, Road _road) {
+    public Segment(Node _startNode, Node _endNode, Road _road, float _nodeOffset = 0) {
         startNode = _startNode;
         endNode = _endNode;
         road = _road;
         angle = Angle();
         Lots = new List<Lot>();
-    }
+        Width = 1;    }
 
 
     public void AddLot(Lot L) {
@@ -90,9 +91,28 @@ public class Segment {
         return startNode.pos();
     }
 
+    public Vector3 StartWithOffset(Vector3 lotPos, float offset = 0)
+    {
+        var left = start() + (Quaternion.Euler(0, 90, 0) * vector()).normalized;
+        left = left + (left * offset);
+        var right = start() + (Quaternion.Euler(0, -90, 0) * vector()).normalized;
+        right = right + (right * offset);
+        return (Vector3.Distance(lotPos,left) > Vector3.Distance(lotPos,right)) ? right : left;
+    }
+
     public Vector3 end() {
         return endNode.pos();
     }
+
+    public Vector3 EndWithOffset(Vector3 lotPos, float offset = 0)
+    {
+        var left = end() + (Quaternion.Euler(0, 90, 0) * vector()).normalized;
+        left = left + (left * offset);
+        var right = end() + (Quaternion.Euler(0, -90, 0) * vector()).normalized;
+        right = right + (right * offset);
+        return (Vector3.Distance(lotPos, left) > Vector3.Distance(lotPos, right)) ? right : left;
+    }
+
 
     public Vector3 vector() {
         return start() - end();
