@@ -117,4 +117,9 @@ public class Segment {
     public Vector3 vector() {
         return start() - end();
     }
+
+    public Vector3 mid()
+    {
+        return (start() + end()) / 2;
+    }
 }

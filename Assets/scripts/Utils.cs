@@ -6,6 +6,11 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 public static class Utils {
+    public static GameObject Marker()
+    {
+        return (GameObject)Resources.Load("marker");
+    }
+
     public static Vector2[] V2dArray(List<Vector3> inputs) {
         List<Vector2> list = new List<Vector2>();
         foreach (var vector3 in inputs) {
@@ -135,6 +140,12 @@ public static class Utils {
 
     public static float AngleDir(Vector2 A, Vector2 B) {
         return -A.x * B.y + A.y * B.x;
+    }
+
+    public static int[] Triangles(Mesh mesh)
+    {
+        Triangulator tr = new Triangulator(V2dArray(mesh.vertices.ToList()));
+        return tr.Triangulate();
     }
 
     public enum Direction {

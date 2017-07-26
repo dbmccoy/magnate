@@ -12,15 +12,15 @@ public class Lot : MonoBehaviour {
     public Segment segment;
 
     public List<Vector3> verts;
-    public List<Vector3> roadFacingVerts;
     public List<Vector3> buildableVerts;
+    public Edge frontEdge;
+    public Edge cornerEdge;
+    public Dictionary<Lot,Edge> adjacentLots = new Dictionary<Lot, Edge>();
     public List<Edge> edges;
     public List<Vector3> points;
     public Vector3 center;
     public Vector3 left;
     public Vector3 right;
-    public Vector3 leftPlus;
-    public Vector3 rightPlus;
     public MeshCollider col;
     public string horizontal;
     public LotInfo info;
@@ -45,7 +45,6 @@ public class Lot : MonoBehaviour {
 	    right = info.Right;
         direction = info.Direction;
         block = info.ParentBlock;
-        roadFacingVerts = info.RoadFacingVerts;
 
 	    foreach (var v in verts) {
 	        //Instantiate(info.ParentBlock.marker, v, Quaternion.identity, transform);
@@ -93,10 +92,26 @@ public class Lot : MonoBehaviour {
         //Instantiate(Resources.Load("boundingPoint"), segment.StartWithOffset(center),Quaternion.identity,transform  );
         //Instantiate(Resources.Load("boundingPoint"), segment.EndWithOffset(center), Quaternion.identity, transform);
 
+        Debug.Log(RoadPoint);
+        if (RoadPoint != null)
+        {
+            segment.AddLot(self);
+            float distance = 999f;
+            edges.ForEach(x =>
+            {
+                if(Vector3.Distance(x.mid(),RoadPoint) < distance)
+                {
+                    distance = Vector3.Distance(x.mid(), RoadPoint);
+                    frontEdge = x;
+                }
+            });
 
-        if (RoadPoint != null)segment.AddLot(self);
-
+            frontstart = frontEdge.start(); frontend = frontEdge.end();
+            //Bug.Mark(frontEdge.start()); Bug.Mark(frontEdge.end());
+        }
     }
+
+    public Vector3 frontstart; public Vector3 frontend;
 
     //segment ordering vars
 
@@ -191,40 +206,61 @@ public class Lot : MonoBehaviour {
     
 
     // Update is called once per frame
-    void Update () {
-		
-	}
+    void Start () {
+        frontstart = frontEdge.start(); frontend = frontEdge.end();
+    }
 }
 
-[System.Serializable]
+[Serializable]
 public class Edge
 {
-    public Vector3 start;
-    public Vector3 end;
-    public Vector3 vector;
+    public Vector3 _start;
+    public Vector3 _end;
+    Vector3 _vector;
 
     public Edge(Vector3[] pair)
     {
-        start = pair[0]; end = pair[1];
-        vector = start - end;
+        _start = pair[0]; _end = pair[1];
+        _vector = _start - _end;
     }
 
     public Vector3 Normal(Vector3 lotPos)
     {
-        return (lotPos - (start + vector) / 2).normalized;
+        return (lotPos - (_start + _vector) / 2).normalized;
     }
 
-    public Vector3 StartOffset(Vector3 lotPos, float offset = 0)
+    public Vector3 start()
     {
-        var left = start + (Quaternion.Euler(0, 90, 0) * vector).normalized * offset;
-        var right = start + (Quaternion.Euler(0, -90, 0) * vector).normalized * offset;
+        return _start;
+    }
+
+    public Vector3 start(Vector3 lotPos, float offset = 0)
+    {
+        var left = _start + (Quaternion.Euler(0, 90, 0) * _vector).normalized * offset;
+        var right = _start + (Quaternion.Euler(0, -90, 0) * _vector).normalized * offset;
         return (Vector3.Distance(lotPos, left) > Vector3.Distance(lotPos, right)) ? right : left;
     }
 
-    public Vector3 EndOffset(Vector3 lotPos, float offset = 0)
+    public Vector3 end()
     {
-        var left = end + (Quaternion.Euler(0, 90, 0) * vector).normalized * offset;
-        var right = end + (Quaternion.Euler(0, -90, 0) * vector).normalized * offset;
+        return _end;
+    }
+
+    public bool EqualTo(Edge edge)
+    {
+        if ((start() == edge.start() && end() == edge.end()) || start() == edge.end() && end() == edge.start()) return true;
+        else return false;
+    }
+
+    public Vector3 end(Vector3 lotPos, float offset = 0)
+    {
+        var left = _end + (Quaternion.Euler(0, 90, 0) * _vector).normalized * offset;
+        var right = _end + (Quaternion.Euler(0, -90, 0) * _vector).normalized * offset;
         return (Vector3.Distance(lotPos, left) > Vector3.Distance(lotPos, right)) ? right : left;
+    }
+
+    public Vector3 mid()
+    {
+        return (start() + end()) / 2;
     }
 }

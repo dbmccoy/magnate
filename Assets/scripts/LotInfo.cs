@@ -53,7 +53,6 @@ public class LotInfo
             }
         }
 
-
         for (int i = 0; i < lotVerts.Count; i++)
         {
             if (RoadSegment == null) return;

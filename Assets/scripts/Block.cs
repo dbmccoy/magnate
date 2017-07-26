@@ -162,6 +162,7 @@ public class Block: MonoBehaviour {
 
         LeftRightSubdivide(BlockLot, Utils.Up);
         LeftRightSubdivide(BlockLot, Utils.Down);
+        NeighborLots();
     }
 
     void LeftRightSubdivide(LotInfo lot, Utils.Direction v_dir) {
@@ -372,6 +373,43 @@ public class Block: MonoBehaviour {
         }
         shiftedVerts = newVerts;
         SetMesh(newVerts, true);
+    }
+
+    public void NeighborLots()
+    {
+        Lots.ForEach(x =>
+        {
+            List<Edge> sideEdges = new List<Edge>();
+            List<Vector3> frontPoints = new List<Vector3> { x.frontend, x.frontstart};
+            x.edges.ForEach(j =>
+            {
+                if ((frontPoints.Contains(j.start()) || frontPoints.Contains(j.end())) && j != x.frontEdge )
+                {
+                    if (!sideEdges.Contains(j))
+                    {
+                        sideEdges.Add(j);
+                    }
+                }
+            });
+            x.edges.ForEach(j =>
+            {
+                Lots.ForEach(i =>
+                {
+                    i.edges.ForEach(e =>
+                    {
+                        if (j.EqualTo(e))
+                        {
+                            if(i != x && !x.adjacentLots.ContainsKey(i)) x.adjacentLots.Add(i,j);
+                        }
+                    });
+                });
+            });
+            x.adjacentLots.Values.ToList().ForEach(v =>
+            {
+                if (sideEdges.Contains(v)) sideEdges.Remove(v);
+            });
+            x.cornerEdge = sideEdges.FirstOrDefault();
+        });
     }
 
 }

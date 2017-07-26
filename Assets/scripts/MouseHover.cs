@@ -28,6 +28,11 @@ public class MouseHover : MonoBehaviour {
 		
 	}
 
+    public GameObject dm_Instantiate(GameObject obj, Vector3 pos, Quaternion rot, Transform t = null)
+    {
+        return Instantiate(obj, pos, rot, t);
+    }
+
     Node selectedNode;
 
 
