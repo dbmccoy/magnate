@@ -139,13 +139,19 @@ public class NodeMap : MonoBehaviour {
     }
 
     void RoadName(Road road) {
-        int i = Random.Range(0, possibleStreetNames.Count - 1);
         string roadname = "default";
-        while (!currentStreetNames.Contains(possibleStreetNames[i])) {
-            roadname = possibleStreetNames[i];
-            currentStreetNames.Add(roadname);
-            i = Random.Range(0, possibleStreetNames.Count - 1);
+
+        bool cont = true;
+        for (int i = 0; i < possibleStreetNames.Count; i++)
+        {
+            if (cont && !currentStreetNames.Contains(possibleStreetNames[i]))
+            {
+                roadname = possibleStreetNames[i];
+                currentStreetNames.Add(roadname);
+                cont = false;
+            }
         }
+
         road.nodes.ForEach(x => x.roads.Add(road));
         road.NameRoad(roadname);
     }

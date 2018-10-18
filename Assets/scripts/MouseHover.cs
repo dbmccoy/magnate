@@ -43,7 +43,7 @@ public class MouseHover : MonoBehaviour {
         //mousePos = Input.mousePosition;
         //mousePos.z = 1000f;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(ray.origin + (Vector3.up * 10), ray.direction, Color.red);
+        Debug.DrawRay(ray.origin - (Vector3.up * 10), ray.direction, Color.red);
 
         RaycastHit[] hits = Physics.RaycastAll(ray);
         RaycastHit hit;
@@ -56,7 +56,7 @@ public class MouseHover : MonoBehaviour {
         }
 
         if (mouseDown && hover) {
-            hover.GetComponent<Entity>().UnHighlight();
+            hover.GetComponent<Obj>().UnHighlight();
         }
 
 
@@ -66,25 +66,31 @@ public class MouseHover : MonoBehaviour {
             mousePos = h.point;
             
 
-            if (h.transform.GetComponent<Entity>()) {
+            if (h.transform.GetComponent<Obj>()) {
                 hit = h;
                 if (hover == null) hover = hit.transform;
                 if (hit.transform != hover) {
-                    //hover.GetComponent<Entity>().UnHighlight();
-                    hover = hit.transform;
-                    //hover.transform.GetComponent<Entity>().Highlight();
+                    
                 }
+                hover.GetComponent<Obj>().UnHighlight();
+                hover = hit.transform;
+                hover.transform.GetComponent<Obj>().Highlight();
                 contextInfo.panel.SetActive(true);
-                contextInfo.Position(hit.point + new Vector3(0, 0, 5));
+                contextInfo.Position(hit.point + new Vector3(5, 0, 10));
+                if (hit.transform.tag == "Lot") contextInfo.PrintLot(hit.transform.GetComponent<Lot>());
 
-                //if (hit.transform.tag == "Lot") contextInfo.
-                //PrintLot(hit.transform.GetComponent<Lot>());
+                if (hit.transform.GetComponent<Obj>() is IHoverable ih)
+                {
+                    
+                }
+
+                /*
                 Node goal = null;
                 if (hit.transform.tag == "Node") {
                     if (goal == null || hit.transform != goal.transform)
                     { 
                         goal = hit.transform.GetComponent<Node>();
-                        X.transform.position = hit.transform.GetComponent<Node>().pos();
+                        //X.transform.position = hit.transform.GetComponent<Node>().pos();
                         if (path.Count > 0) path.ForEach(x => x.CameFromObj.GetComponentInChildren<SpriteRenderer>().material.color = Color.white);
                         path = StartNode.CachePath(hit.transform.GetComponent<Node>());
                         path.ForEach(x => x.CameFromObj.GetComponentInChildren<SpriteRenderer>().material.color = Color.blue);
@@ -106,6 +112,7 @@ public class MouseHover : MonoBehaviour {
                     //contextInfo.
                      //PrintNode(hit.transform.GetComponent<Node>());
                  }
+                */
                 if (Input.GetMouseButtonUp(0))
                 {
                     contextMenu.Open(hit.transform);
@@ -117,7 +124,7 @@ public class MouseHover : MonoBehaviour {
             else {
                 contextInfo.panel.SetActive(false);
                 if (hover) {
-                    //hover.GetComponent<Entity>().UnHighlight();
+                    hover.GetComponent<Obj>().UnHighlight();
                     hover = null;
                 }
             }

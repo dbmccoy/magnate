@@ -24,7 +24,7 @@ public class MouseDrag : MonoBehaviour {
     void Update () {
 
 
-        if (Input.GetMouseButtonDown(0)) {
+        if (Input.GetMouseButtonDown(1)) {
             //camOrigPos = Camera.main.transform.position;
             LastMousePosition = MouseHover.i.mousePos;
             isDragging = true;

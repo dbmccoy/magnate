@@ -47,6 +47,7 @@ public class BlockMap : MonoBehaviour {
         //ORDER LOTS WITHIN EACH SEGMENT AND ADD ADDRESSES
         nodeMap.roads.ToList().ForEach(x => {
             x.nodes = x.OrderNodes();
+            Debug.Log(x.segments.Count);
             x.segments.ForEach(i => i.OrderedLots());
         });
         nodeMap.roads.ToList().ForEach(x => x.AssignLotAddresses());

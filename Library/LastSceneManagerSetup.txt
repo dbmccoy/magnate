@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/GameScreen.unity
+- path: Assets/scripts/AI/GOAP/ReGOAP/Unity/FSMExample/ExampleFSMScene.unity
   isLoaded: 1
   isActive: 1

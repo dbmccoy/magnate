@@ -8,6 +8,17 @@ using System.Linq;
 //[System.Serializable]
 public class Road : MonoBehaviour {
 
+    public enum RoadType
+    {
+        Residential,
+        Thoroughfare,
+        Downtown
+    }
+
+    public RoadType roadType;
+
+    /////////////////////////////////////
+
     public List<Node> nodes;
     public Vector3[] points_v;
     public List<Segment> segments;
@@ -99,6 +110,7 @@ public class Road : MonoBehaviour {
         segments.ForEach(x => {
             x.Lots.ForEach(j => {
                 j.Address = i + " " + roadName;
+                j.name = j.Address;
                 i++;
             });
         });

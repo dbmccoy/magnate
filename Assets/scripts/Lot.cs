@@ -5,34 +5,47 @@ using System.Diagnostics.SymbolStore;
 using UnityEngine;
 using System.Linq;
 
-public class Lot : MonoBehaviour {
+public class Lot : MonoBehaviour, IOwnable {
+
+    //IAsset implementation
+    public string Name { get; set; }
+    public Entity OwningEntity { get; set; }
+    public string Address;
+
+    public float GetValue()
+    {
+        return 0f;
+    }
+
+    public void Transfer(Entity to)
+    {
+
+    }
 
     public Road road;
     public Block block;
     public Segment segment;
 
-    public List<Vector3> verts;
-    public List<Vector3> buildableVerts;
-    public Edge frontEdge;
-    public Edge cornerEdge;
-    public Dictionary<Lot,Edge> adjacentLots = new Dictionary<Lot, Edge>();
-    public List<Edge> edges;
-    public List<Vector3> points;
-    public Vector3 center;
-    public Vector3 left;
-    public Vector3 right;
-    public MeshCollider col;
-    public string horizontal;
-    public LotInfo info;
-    public Vector3 direction;
-    public Vector3 RoadPoint;
-    public Lot self;
-    public string Address;
+    [HideInInspector] public List<Vector3> verts;
+    [HideInInspector] public List<Vector3> buildableVerts;
+    [HideInInspector] public Edge frontEdge;
+    [HideInInspector] public Edge cornerEdge;
+    [HideInInspector] public Dictionary<Lot,Edge> adjacentLots = new Dictionary<Lot, Edge>();
+    [HideInInspector] public List<Edge> edges;
+    [HideInInspector] public List<Vector3> points = new List<Vector3>();
+    [HideInInspector] public Vector3 center;
+    [HideInInspector] public Vector3 left;
+    [HideInInspector] public Vector3 right;
+    [HideInInspector] public MeshCollider col;
+    [HideInInspector] public string horizontal;
+    [HideInInspector] public LotInfo info;
+    [HideInInspector] public Vector3 direction;
+    [HideInInspector] public Vector3 RoadPoint;
+    [HideInInspector] public Lot self;
 
     //segment ordering variables
-    public bool isLeftOfSegVector;
-    public float angleToSegStart;
-
+    [HideInInspector] public bool isLeftOfSegVector;
+    [HideInInspector] public float angleToSegStart;
 
 	// Use this for initialization
 	public void init(LotInfo _info) {
@@ -88,11 +101,6 @@ public class Lot : MonoBehaviour {
         }
         edges.Add(new Edge(new Vector3[] { verts[verts.Count - 1], verts[0] }));
 
-        //Instantiate(Resources.Load("boundingPoint"), RoadPoint, Quaternion.identity, transform);
-        //Instantiate(Resources.Load("boundingPoint"), segment.StartWithOffset(center),Quaternion.identity,transform  );
-        //Instantiate(Resources.Load("boundingPoint"), segment.EndWithOffset(center), Quaternion.identity, transform);
-
-        Debug.Log(RoadPoint);
         if (RoadPoint != null)
         {
             segment.AddLot(self);
@@ -107,68 +115,103 @@ public class Lot : MonoBehaviour {
             });
 
             frontstart = frontEdge.start(); frontend = frontEdge.end();
+            //GenZone();
+            ReturnBuildableVerts();
             //Bug.Mark(frontEdge.start()); Bug.Mark(frontEdge.end());
         }
     }
 
-    public Vector3 frontstart; public Vector3 frontend;
+    [HideInInspector] public Vector3 frontstart, frontend;
 
     //segment ordering vars
 
-    public List<float> angles;
+    [HideInInspector] public List<float> angles;
 
     private void OnMouseDown() {
         Debug.Log("click");
     }
 
-    public float segDistance; //DEBUG ONLY
+    [HideInInspector] public float segDistance; //DEBUG ONLY
 
     public float DistanceToSegStart() {
-        segDistance = Vector3.Distance(RoadPoint, segment.startNode.pos());
-        return segDistance;
+        try
+        {
+            segDistance = Vector3.Distance(RoadPoint, segment.startNode.pos());
+            return segDistance;
+        }
+        catch
+        {
+            Debug.Log(name);
+            return 0f;
+        }
     }
 
-    //public List<Vector3> ReturnBuildableVerts()
-    //{
-    //    float f = info.Zoning.FrontSetback;
-    //    float s = info.Zoning.SideSetback;
-    //    Edge frontage;
-    //    edges.ForEach(x =>
-    //    {
-    //        info.ParentBlock.boundingSegments.ForEach(j =>
-    //        {
-    //            Vector3 normal = (x.start + x.vector) / 2 + (x.Normal(center) * 10f);
-    //            if (Math3d.AreLineSegmentsCrossing((x.start + x.vector) / 2, normal, j.start(), j.end()))
-    //            {
-    //                frontage = x;
-    //                return;
-    //            }
-    //        });
-    //    });
+    public void ReturnBuildableVerts()
+    {
+        float f = info.Zoning.FrontSetback;
+        float s = info.Zoning.SideSetback;
 
-    //    //edges.ForEach(x =>
-    //    //{
-    //    //    edges.ForEach(j =>
-    //    //    {
+        edges.ForEach(x =>
+        {
+            edges.ForEach(j =>
+            {
 
-    //    //        Vector3 hit;
-    //    //        if (Math3d.LineLineIntersection(out hit, x.StartOffset(center,), x.vector, j.StartOffset, j.vector))
-    //    //        {
+                Vector3 hit;
+                if (Math3d.LineLineIntersection(out hit, x.start(info.LotCenter,f), x.vector(), j.start(), j.vector()))
+                {
+                    //Instantiate(Utils.Marker(), hit, Quaternion.identity);
+                }
+            });
+        });
 
-    //    //        }
-    //    //    });
-    //    //});
-        
-    //}
+    }
+
+    public void Awake()
+    {
+        GenZone();
+    }
+
+    public Zone.ZoneClass z_Class;
+
+    public void SetZone(Zone _zone)
+    {
+        if(_zone.zone == Zone.ZoneClass.CS)
+        {
+            z_Class = _zone.zone;
+            self.GetComponent<MeshRenderer>().material = (Material)Resources.Load("materials/red");
+        }
+        if (_zone.zone == Zone.ZoneClass.R5)
+        {
+            z_Class = _zone.zone;
+            self.GetComponent<MeshRenderer>().material = (Material)Resources.Load("materials/yellow");
+        }
+    }
+
+    public void GenZone()
+    {
+        if(road.roadType == Road.RoadType.Thoroughfare)
+        {
+            //Debug.Log(ZoneManager.i.CS.zone);
+            SetZone(ZoneManager.i.CS);
+        }
+        if (road.roadType == Road.RoadType.Residential)
+        {
+            SetZone(ZoneManager.i.R5);
+        }
+        else
+        {
+            SetZone(ZoneManager.i.R5);
+        }
+        Name = Address;
+    }
 
     public void Build() {
         GameObject building = (GameObject)Instantiate(Resources.Load("buildings/house_test_1"), center, Quaternion.LookRotation(direction),transform);
-        Debug.Log("call");
     }
 
-    public Vector3[] MeshVerts;
-    public int[] triangles;
-    public Vector2[] arr;
+    [HideInInspector] public Vector3[] MeshVerts;
+    [HideInInspector] public int[] triangles;
+    [HideInInspector] public Vector2[] arr;
 
     void SetMesh(List<Vector3> _verts, Vector2[] v2d) {
 
@@ -212,6 +255,22 @@ public class Lot : MonoBehaviour {
 }
 
 [Serializable]
+public class lot_Params
+{
+    public int sq_ft;
+    public List<Vector3> bounds;
+    public List<Vector3> buildableBounds;
+    public Zone zone_Info;
+
+    public lot_Params()
+    {
+
+    }
+}
+
+
+
+[Serializable]
 public class Edge
 {
     public Vector3 _start;
@@ -244,6 +303,16 @@ public class Edge
     public Vector3 end()
     {
         return _end;
+    }
+
+    public Vector3 vector()
+    {
+        return end() - start();
+    }
+
+    public Vector3 vector(Vector3 start, Vector3 end)
+    {
+        return end - start;
     }
 
     public bool EqualTo(Edge edge)

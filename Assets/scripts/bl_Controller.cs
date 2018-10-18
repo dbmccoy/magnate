@@ -16,7 +16,7 @@ public class bl_Controller : MonoBehaviour
     public ProBuilding building;
 
     public GameObject window;
-    public bl_Params parameters;
+    public bl_Plan plan;
 
     // Use this for initialization
     void Start()
@@ -34,13 +34,18 @@ public class bl_Controller : MonoBehaviour
 
         Lot lot = block.Lots[4];
 
-        parameters = new bl_Params(mat, frontMat);
-        block.Lots.ForEach(x => CreateProBuilding(x));
+        plan = new bl_Plan(mat, frontMat, .5f);
+        block.Lots.ForEach(x => CreateProBuilding(x, plan));
         //building = CreateProBuilding(lot);
     }
 
-    public ProBuilding CreateProBuilding(Lot _lot)
+    public ProBuilding CreateProBuilding(Lot _lot, bl_Plan _plan)
     {
+        if(_lot.z_Class == Zone.ZoneClass.R5)
+        {
+            _lot.Build();
+            return null;
+        }
         Mesh buildMesh = new Mesh();
         buildMesh.SetVertices(_lot.GetComponent<MeshFilter>().mesh.vertices.ToList());
         buildMesh.triangles = _lot.triangles;
@@ -55,14 +60,14 @@ public class bl_Controller : MonoBehaviour
 
         pb = bl.ProBuilderize(buildGO);
         pb.MergeFaces(pb.faces);
-        pb.Extrude(new pb_Face[] { pb.faces[0] }, ExtrudeMethod.FaceNormal, 1f);
+        pb.Extrude(new pb_Face[] { pb.faces[0] }, ExtrudeMethod.FaceNormal, _plan.floorHeight);
         // pb.SetFaceMaterial(pb.faces, mat);
         pb_Face front = null;
-        ProBuilding bld = new ProBuilding(pb, pb.faces[0], mat, _lot, parameters);
+        ProBuilding bld = new ProBuilding(pb, pb.faces[0], mat, _lot, _plan);
         pb.faces.ToList().ForEach(x => x.material = mat);
         //front.material = frontMat;
         bl_Floor gr = new bl_Floor(pb,bld);
-        gr.front.material = bld.parameters.frontMat;
+        gr.front.material = _plan.frontMat;
 
         pb.ToMesh();
         pb.Refresh();
@@ -120,19 +125,23 @@ public class bl_Controller : MonoBehaviour
     }
 }
 
-public class bl_Params
+public class bl_Plan
 {
     public Material baseMat;
     public Material frontMat;
     public Material topMat;
 
-    public bl_Params(Material _baseMat, Material _frontMat)
+    public float floorHeight;
+
+    public bl_Plan(Material _baseMat, Material _frontMat, float fl_Height)
     {
         baseMat = _baseMat;
         frontMat = _frontMat;
+        floorHeight = fl_Height;
         //topMat = _topMat;
     }
 }
+
 
 
 

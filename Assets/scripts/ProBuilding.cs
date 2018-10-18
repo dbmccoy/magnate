@@ -13,7 +13,7 @@ public class ProBuilding
     float height;
 
     public pb_Object pb;
-    public bl_Params parameters;
+    public bl_Plan parameters;
 
     public pb_Face top;
     public List<int> Indices_Top;
@@ -22,7 +22,7 @@ public class ProBuilding
     List<int> Indices_Front;
     public Lot lot;
 
-    public ProBuilding(pb_Object _pb, pb_Face _top, Material _mat, Lot _lot, bl_Params _parameters)
+    public ProBuilding(pb_Object _pb, pb_Face _top, Material _mat, Lot _lot, bl_Plan _parameters)
     {
         parameters = _parameters;
         pb = _pb;
