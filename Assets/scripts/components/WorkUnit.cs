@@ -9,7 +9,7 @@ public class WorkUnit {
     public Entity Entity;
     public Person Manager;
     public List<IProductive> Inputs = new List<IProductive>();
-    public HashSet<Work.Type> WorkTypes = new HashSet<Work.Type>();
+    public HashSet<Work> WorkTypes = new HashSet<Work>();
     public List<Project> Projects = new List<Project>();
 
     public HashSet<IWorkUnitAction> ActionSet = new HashSet<IWorkUnitAction>();
@@ -18,13 +18,16 @@ public class WorkUnit {
 
     public void AddProject(Project project)
     {
-        Projects.Add(project);
-        Debug.Log("project added");
+        if (!Projects.Contains(project))
+        {
+            Projects.Add(project);
+            Debug.Log(project.Deliverable.ToString() + " project added");
+        }
     }
 
     public void AddInput(IProductive input)
     {
-        if(Inputs.IndexOf(input) == -1)
+        if (Inputs.IndexOf(input) == -1)
         {
             Inputs.Add(input);
 
@@ -39,8 +42,39 @@ public class WorkUnit {
         }
     }
 
-    public void CheckForNewAvailableActions(Work.Type newType)
+    public void TakeInput(IProductive input)
     {
+        if(Projects.Count > 0)
+        {
+            if (input.Skills.Count > 0)
+            {
+                Projects[0].OptimizeInput(input); //bootstrap
+            }
+            if (Projects[0].isComplete())
+            {
+                CompleteProject(Projects[0]);
+            }
+        }
+    }
+
+    public void CompleteProject(Project project)
+    {
+        Projects.Remove(project);
+        foreach(var input in Inputs)
+        {
+            if (input is Person p)
+            {
+                p.GetAgent().CurrentAction().Exit();
+            }
+        }
+    }
+
+
+
+    public void CheckForNewAvailableActions(Work newType)
+    {
+        //rewrite this for monobehaviors
+        /* 
         foreach (var action in WorkUnitActions.Instance.Actions.Where(x => x.Value.Contains(newType)))
         {
             if (action.Value.IsSubsetOf(WorkTypes))
@@ -50,15 +84,8 @@ public class WorkUnit {
                 ActionDict.Add(action.Key, newAction);
                 Debug.Log("added a new action idk");
             }
-        } 
+        }*/
     }
 
-    public void TakeInput(IProductive input)
-    {
-        Projects[0].OptimizeInput(input); //bootstrap
-        foreach (var project in Projects)
-        {
-            
-        }
-    }
+
 }

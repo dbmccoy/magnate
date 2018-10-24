@@ -19,33 +19,43 @@ public class BuildingConstructionAction : ReGoapAction<string, object>
     protected override void Awake()
     {
         base.Awake();
+        Name = "BuildingConstruction";
         //WorkUnit = GetComponent<WorkUnit>();
         //Entity = GetComponent<Entity>();
         Person = GetComponent<Person>();
-        preconditions.Set("hasProject", Person.Projects);
         //building = project.Deliverable as Building;
-        effects.Set("hasAsset", building as IOwnable);
+    }
+
+    public void SetProject(Project p)
+    {
+        project = p;
+        effects.Set("hasAsset", p.Deliverable as IOwnable);
+    }
+
+    public void SetPrecondition(string key, object value)
+    {
+        preconditions.Set(key, value);
+    }
+
+    public void SetEffect(string key, object value)
+    {
+        building = value as Building;
+        Debug.Log(building.Name);
+        effects.Set(key, value);
     }
 
     public override bool CheckProceduralCondition(GoapActionStackData<string, object> stackData)
     {
-        var  q = (Queue<Project>)preconditions.Get("hasProject");
-        try
-        {
-            project = q.Dequeue();
-        }
-        catch
-        {
-            return false;
-        }
-
+        //Debug.Log(building.Name);
         return base.CheckProceduralCondition(stackData) && project != null;
     }
 
     public override void Run(IReGoapAction<string, object> previous, IReGoapAction<string, object> next, ReGoapState<string, object> settings, ReGoapState<string, object> goalState, Action<IReGoapAction<string, object>> done, Action<IReGoapAction<string, object>> fail)
     {
-
         base.Run(previous, next, settings, goalState, done, fail);
+        Person.CurrentUnit.AddProject(project);
+        //Person.Projects.Enqueue(project);
+        //Person.CurrentUnit.AddProject(project);
     }
 
 }

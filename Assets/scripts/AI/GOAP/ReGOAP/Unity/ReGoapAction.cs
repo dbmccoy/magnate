@@ -111,6 +111,11 @@ namespace ReGoap.Unity
         {
         }
 
+        public virtual void Exit()
+        {
+            doneCallback(this);
+        }
+
         public virtual void Exit(IReGoapAction<T, W> next)
         {
             if (gameObject != null)

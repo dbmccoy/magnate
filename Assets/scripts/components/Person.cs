@@ -21,7 +21,7 @@ public class Person : MonoBehaviour, IProductive{
     {
         Name = "Jeff";
         Entity = new Entity(" Entity");
-        Skills = new Dictionary<Work.Type, float>();
+        Skills = new Dictionary<Work, float>();
         agent = GetComponent<PersonAgent>();
         agent.Name = Name;
         memory = GetComponent<PersonMemory>();
@@ -36,7 +36,7 @@ public class Person : MonoBehaviour, IProductive{
     //IProductive
     public WorkUnit CurrentUnit { get; set; }
     public Project CurrentProject { get; set; }
-    public Dictionary<Work.Type, float> Skills { get; set; }
+    public Dictionary<Work, float> Skills { get; set; }
     public float Capacity { get; set; }
 
     public void AssignUnit(WorkUnit unit)
@@ -45,11 +45,11 @@ public class Person : MonoBehaviour, IProductive{
         CurrentUnit = unit;
     }
 
-    public void AddSkill(Work.Type type, float val)
+    public void AddSkill(Work type, float val)
     {
         if(Skills == null)
         {
-            Skills = new Dictionary<Work.Type, float>();
+            Skills = new Dictionary<Work, float>();
         }
         Skills.Add(type, val);
     }
@@ -92,6 +92,11 @@ public class Person : MonoBehaviour, IProductive{
         black,
         latino,
         asian
+    }
+
+    public T AddComponent<T>() where T : Component
+    {
+        return gameObject.AddComponent<T>();
     }
 }
 

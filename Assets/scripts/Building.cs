@@ -26,9 +26,9 @@ public class Building : IBuilding {
     public Project CreateProject()
     {
         var Reqs = new List<WorkReq>();
-        Reqs.Add(new WorkReq(Work.Type.BldFoundation, SquareFeet, 1, order: 1, maxAmt: SquareFeet)); //needs formula
-        Reqs.Add(new WorkReq(Work.Type.BldFraming, SquareFeet, 1, order: 2, maxAmt: SquareFeet));
-        Reqs.Add(new WorkReq(Work.Type.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet));
+        Reqs.Add(new WorkReq(Work.BldFoundation, SquareFeet, 1, order: 1, maxAmt: SquareFeet)); //needs formula
+        Reqs.Add(new WorkReq(Work.BldFraming, SquareFeet, 1, order: 2, maxAmt: SquareFeet));
+        Reqs.Add(new WorkReq(Work.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet));
         return new Project(this, Reqs);
     }
 

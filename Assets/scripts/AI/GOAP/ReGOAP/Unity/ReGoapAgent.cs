@@ -62,6 +62,11 @@ namespace ReGoap.Unity
 
         }
 
+        public virtual IReGoapAction<T,W> CurrentAction()
+        {
+            return currentActionState.Action;
+        }
+
         protected virtual void OnDisable()
         {
             if (currentActionState != null)

@@ -31,21 +31,21 @@ public sealed class WorkUnitActions {
     }
 
     [SerializeField]
-    public HashSet<Work.Type> BuildingConstructionReqs = new HashSet<Work.Type>
-        { Work.Type.BldFoundation
-        , Work.Type.BldFraming
-        , Work.Type.BldFinishing};
+    public HashSet<Work> BuildingConstructionReqs = new HashSet<Work>
+        { Work.BldFoundation
+        , Work.BldFraming
+        , Work.BldFinishing};
 
 
-    public TypeDictionary<HashSet<Work.Type>> Actions = new TypeDictionary<HashSet<Work.Type>>
+    public TypeDictionary<HashSet<Work>> Actions = new TypeDictionary<HashSet<Work>>
     {
-        {typeof(BuildingConstructionAction), new HashSet<Work.Type>{ Work.Type.BldFoundation, Work.Type.BldFraming, Work.Type.BldFinishing } }
+        {typeof(BuildingConstructionAction), new HashSet<Work>{ Work.BldFoundation, Work.BldFraming, Work.BldFinishing } }
     };
     
 
     [SerializeField]
-    public HashSet<Work.Type> FinLendingReqs = new HashSet<Work.Type>
-        { Work.Type.FinLoaning
+    public HashSet<Work> FinLendingReqs = new HashSet<Work>
+        { Work.FinLoaning
         };
 
 }

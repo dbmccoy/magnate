@@ -29,9 +29,9 @@ public class Bootstrap : MonoBehaviour {
 
         Bank.Deposits.Balance += 2000000;
 
-        PlanTest();
+        //PlanTest();
 
-        //ConstructionTest();
+        ConstructionTest();
     }
 
     // Update is called once per frame
@@ -63,7 +63,6 @@ public class Bootstrap : MonoBehaviour {
         jeff.Projects.Enqueue(building.CreateProject());
         BuildingConstructionAction bldAction = jeff.gameObject.AddComponent(typeof(BuildingConstructionAction)) as BuildingConstructionAction;
         HaveAssetGoal jeffGoal = jeff.gameObject.AddComponent(typeof(HaveAssetGoal)) as HaveAssetGoal;
-        jeffGoal.SetGoal(building);
         //PlannerManager.Instance.Plan(jeff.GetAgent(), jeffGoal,null,null);
     }
 
@@ -71,36 +70,41 @@ public class Bootstrap : MonoBehaviour {
     {
         var reqs = WorkUnitActions.Instance.BuildingConstructionReqs;
 
-        GameObject CE1G = Instantiate(Resources.Load("Person")) as GameObject;
-        GameObject CE2G = Instantiate(Resources.Load("Person")) as GameObject;
-        Person CE1 = CE1G.GetComponent<Person>();
-        Person CE2 = CE2G.GetComponent<Person>();
-
-        CE1.AddSkill(Work.Type.BldFoundation, 2f);
-        CE1.AddSkill(Work.Type.BldFraming, 1f);
-        CE1.AddSkill(Work.Type.BldFinishing, 1f);
-
-        CE2.AddSkill(Work.Type.BldFoundation, 1f);
-        CE2.AddSkill(Work.Type.BldFraming, 3f);
-        CE2.AddSkill(Work.Type.BldFinishing, 1f);
-
-        CE1.AssignUnit(Contractor.WorkUnits[0]);
-        CE2.AssignUnit(Contractor.WorkUnits[0]);
+        GameObject buckG = Instantiate(Resources.Load("Person")) as GameObject;
+        Person Buck = buckG.GetComponent<Person>();
+        Buck.Name = "Buck";
+        Buck.gameObject.name = "Buck";
+        Buck.AssignUnit(Contractor.WorkUnits[0]);
 
         Building building = new Building("new bld", Capitalist, (Lot)City.Assets[0], fls: 2, sqf: 200);
 
-        //Project project = building.CreateProject();
+        //Buck.AddComponent<TestGoal>();
+        Buck.gameObject.AddComponent<TestGoal>();
+        //Buck.AddComponent<HaveAssetGoal>();
 
-        BuildingConstructionAction builder = (BuildingConstructionAction)Contractor.WorkUnits[0].ActionDict[typeof(BuildingConstructionAction)];
+        //Buck.GetComponent<HaveAssetGoal>().SetGoal(building as IOwnable);
+        //Buck.AddComponent<BuildingConstructionAction>();
+        var project = building.CreateProject();
+        //Buck.GetComponent<BuildingConstructionAction>().SetProject(project);
+        
+        //Buck.GetComponent<BuildingConstructionAction>().SetEffect("hasAsset", building as IOwnable);
 
-        if(builder != null)
-        {
-            //builder.ConstructBuilding(building);
-        }
-        else
-        {
-            Debug.Log("where builder");
-        }
+        Debug.Log(Buck.CurrentUnit.Projects.Count);
+
+        GameObject CE1G = Instantiate(Resources.Load("Person")) as GameObject;
+        Person CE1 = CE1G.GetComponent<Person>();
+        CE1.Name = "Fred";
+        CE1.gameObject.name = "Fred";
+
+        CE1.AddSkill(Work.BldFoundation, 2f);
+        CE1.AddSkill(Work.BldFraming, 1f);
+        CE1.AddSkill(Work.BldFinishing, 1f);
+
+        CE1.AssignUnit(Contractor.WorkUnits[0]);
+
+        //BuildingConstructionAction builder = (BuildingConstructionAction)Contractor.WorkUnits[0].ActionDict[typeof(BuildingConstructionAction)];
+        //CE1.gameObject.AddComponent<TestGoal>();
+        //CE1.GetComponent<TestGoal>().Priority = 100f;
     }
 
 	void Update () {

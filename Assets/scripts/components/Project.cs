@@ -38,6 +38,7 @@ public class Project
 
     public void OptimizeInput(IProductive input)
     {
+        Debug.Log("optimize input");
         var reqs = GetOpenReqs();
         WorkReq highest = reqs.First();
         foreach (var req in reqs)

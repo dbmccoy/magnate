@@ -25,6 +25,8 @@ namespace ReGoap.Core
         // Called when the plan, which had this action, has either failed or completed
         void PlanExit(IReGoapAction<T, W> previousAction, IReGoapAction<T, W> nextAction, ReGoapState<T, W> settings, ReGoapState<T, W> goalState);
         void Exit(IReGoapAction<T, W> nextAction);
+        // Added by dbm to manually do completeCallback from outside
+        void Exit();
         string GetName();
         bool IsActive();
         bool IsInterruptable();

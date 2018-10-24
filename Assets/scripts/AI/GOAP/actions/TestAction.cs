@@ -7,6 +7,8 @@ using System;
 
 public class TestAction : ReGoapAction<string,object> {
 
+    Person Person;
+
     protected override void Awake()
     {
         base.Awake();
@@ -14,11 +16,14 @@ public class TestAction : ReGoapAction<string,object> {
         effects.Set("hasJob", true);
     }
 
-    public override void Run(IReGoapAction<string, object> previous, IReGoapAction<string, object> next, ReGoapState<string, object> settings, ReGoapState<string, object> goalState, Action<IReGoapAction<string, object>> done, Action<IReGoapAction<string, object>> fail)
+    public override void Run(IReGoapAction<string, object> previous, IReGoapAction<string, object> next
+        , ReGoapState<string, object> settings, ReGoapState<string, object> goalState
+        , Action<IReGoapAction<string, object>> done, Action<IReGoapAction<string, object>> fail)
     {
         base.Run(previous, next, settings, goalState, done, fail);
-        GetComponent<Person>().Job = "Mailman";
+        Person = GetComponent<Person>();
         Debug.Log("is mailman");
+        Person.Job = "Mailman";
         doneCallback(this);
     }
 }

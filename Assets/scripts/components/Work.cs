@@ -2,18 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Work {
+public enum Work {
+    BldFoundation,
+    BldFraming,
+    BldFinishing,
+    BldMaintenance,
 
-	public enum Type
-    {
-        //Construction
-        BldFoundation,
-        BldFraming,
-        BldFinishing,
-        BldMaintenance,
+    FinLoaning,
 
-        FinLoaning,
-
-        PolCanvas
-    }
+    PolCanvas
 }
