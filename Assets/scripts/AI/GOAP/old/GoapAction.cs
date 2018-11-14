@@ -2,18 +2,30 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public abstract class GoapAction {
+public abstract class GoapAction : MonoBehaviour {
 
 
 	private HashSet<KeyValuePair<string,object>> preconditions;
 	private HashSet<KeyValuePair<string,object>> effects;
 
-	private bool inRange = false;
+    private bool inRange = false;
 
 	/* The cost of performing the action. 
 	 * Figure out a weight that suits the action. 
 	 * Changing it will affect what actions are chosen during planning.*/
 	public float cost = 1f;
+
+    //david defined
+
+    public float calcCost(IGoap actor)
+    {
+        // override to calculate procedural cost or will return base
+        return cost;
+    }
+
+    //public static HashSet<Skill> SkillReqs = new HashSet<Skill>{};
+
+    //end david defined
 
 	/**
 	 * An action often has to perform on an object. This is that object. Can be null. */
@@ -117,4 +129,10 @@ public abstract class GoapAction {
 			return effects;
 		}
 	}
+
+}
+
+public interface IHaveSkillReq
+{
+    HashSet<SkillType> SkillReqs();
 }

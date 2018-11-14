@@ -7,14 +7,11 @@ using ReGoap.Core;
 using ReGoap.Unity;
 using ReGoap.Planner;
 
-[RequireComponent(typeof(PlannerManager))]
 public class GameManager : MonoBehaviour
 {
 
     public Entity city;
     public Entity player;
-
-    public ReGoapPlannerManager<string, object> Planner;
 
     public List<Entity> Entities = new List<Entity>();
     public List<Person> People = new List<Person>();
@@ -41,7 +38,6 @@ public class GameManager : MonoBehaviour
     {
         DayTickEvent = new UnityEvent();
         MonthTickEvent = new UnityEvent();
-        Planner = GetComponent<PlannerManager>();
 
         DayTimer.countUp = true;
         DayTimer.startingValue = 0;

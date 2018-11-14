@@ -23,23 +23,23 @@ public class Building : IBuilding {
         isComplete = iscomplete;
     }
 
+    public Project project;
+
     public Project CreateProject()
     {
         var Reqs = new List<WorkReq>();
-        Reqs.Add(new WorkReq(Work.BldFoundation, SquareFeet, 1, order: 1, maxAmt: SquareFeet)); //needs formula
-        Reqs.Add(new WorkReq(Work.BldFraming, SquareFeet, 1, order: 2, maxAmt: SquareFeet));
-        Reqs.Add(new WorkReq(Work.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet));
-        return new Project(this, Reqs);
+        Reqs.Add(new WorkReq(SkillType.BldFoundation, SquareFeet, 1, order: 1, maxAmt: SquareFeet)); //needs formula
+        Reqs.Add(new WorkReq(SkillType.BldFraming, SquareFeet, 1, order: 2, maxAmt: SquareFeet));
+        Reqs.Add(new WorkReq(SkillType.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet));
+        project = new Project(this, Reqs);
+        return project;
     }
 
     public void StartConstruction()
     {
-        BuildingObj = MonoBehaviour.Instantiate(BuildingObj, Lot.transform);
-        BuildingObj.transform.position = Lot.transform.position;
-
-        ////bootstrap
-        CompleteConstruction();
-
+        GameObject obj = GameObject.Instantiate(Resources.Load("buildings/house_test_1"), Lot.transform) as GameObject;
+        BuildingObj = obj.GetComponent<BuildingObj>();
+        BuildingObj.Init(this);
     }
 
     public void CompleteConstruction()

@@ -1,63 +1,75 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using ReGoap.Unity;
-using ReGoap.Core;
 using System;
 
-public class BuildingConstructionAction : ReGoapAction<string, object>
+public class BuildingConstructionAction : GoapAction
 {
-    private Person Person;
+    private Person person;
+    private GoapAgent agent;
 
     public Entity Entity { get; set; }
     public WorkUnit WorkUnit { get; set; }
 
     private Project project;
-    private Building building;
-    
+    [SerializeField]
+    public Building building;
 
-    protected override void Awake()
+    public static HashSet<SkillType> SkillReqs = new HashSet<SkillType>
     {
-        base.Awake();
-        Name = "BuildingConstruction";
-        //WorkUnit = GetComponent<WorkUnit>();
-        //Entity = GetComponent<Entity>();
-        Person = GetComponent<Person>();
-        //building = project.Deliverable as Building;
+          SkillType.BldFoundation
+        , SkillType.BldFraming
+        , SkillType.BldFinishing
+    };
+
+    public void Awake()
+    {
+        person = GetComponent<Person>();
+        agent = GetComponent<GoapAgent>();
     }
 
-    public void SetProject(Project p)
+    public void AddProject(Project p)
     {
         project = p;
-        effects.Set("hasAsset", p.Deliverable as IOwnable);
+        building = p.Deliverable as Building; //test for this
+
+        addPrecondition("meetsWorkReqs", project);
+        addEffect("hasAsset", p.Deliverable as Building);
     }
 
-    public void SetPrecondition(string key, object value)
+    public override void reset()
     {
-        preconditions.Set(key, value);
     }
 
-    public void SetEffect(string key, object value)
+    public override bool isDone()
     {
-        building = value as Building;
-        Debug.Log(building.Name);
-        effects.Set(key, value);
+        return project.isComplete();
     }
 
-    public override bool CheckProceduralCondition(GoapActionStackData<string, object> stackData)
+    public override bool checkProceduralPrecondition(GameObject agent)
     {
-        //Debug.Log(building.Name);
-        return base.CheckProceduralCondition(stackData) && project != null;
+        return project != null;
     }
 
-    public override void Run(IReGoapAction<string, object> previous, IReGoapAction<string, object> next, ReGoapState<string, object> settings, ReGoapState<string, object> goalState, Action<IReGoapAction<string, object>> done, Action<IReGoapAction<string, object>> fail)
+    private bool inProgress = false;
+
+    public override bool perform(GameObject agent)
     {
-        base.Run(previous, next, settings, goalState, done, fail);
-        Person.CurrentUnit.AddProject(project);
-        //Person.Projects.Enqueue(project);
-        //Person.CurrentUnit.AddProject(project);
+        if (inProgress == false)
+        {
+            inProgress = true;
+
+            building.StartConstruction();
+            person.CurrentUnit.AddProject(project);
+        }
+
+        return true;
     }
 
+    public override bool requiresInRange()
+    {
+        return false;
+    }
 }
 
 

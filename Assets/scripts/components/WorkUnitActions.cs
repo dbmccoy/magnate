@@ -23,29 +23,20 @@ public sealed class WorkUnitActions {
         }
     }
 
-
-
     public WorkUnitActions()
     {
 
     }
 
-    [SerializeField]
-    public HashSet<Work> BuildingConstructionReqs = new HashSet<Work>
-        { Work.BldFoundation
-        , Work.BldFraming
-        , Work.BldFinishing};
-
-
-    public TypeDictionary<HashSet<Work>> Actions = new TypeDictionary<HashSet<Work>>
+    public TypeDictionary<HashSet<SkillType>> Actions = new TypeDictionary<HashSet<SkillType>>
     {
-        {typeof(BuildingConstructionAction), new HashSet<Work>{ Work.BldFoundation, Work.BldFraming, Work.BldFinishing } }
+        {typeof(BuildingConstructionAction), new HashSet<SkillType>{ SkillType.BldFoundation, SkillType.BldFraming, SkillType.BldFinishing } }
     };
     
 
     [SerializeField]
-    public HashSet<Work> FinLendingReqs = new HashSet<Work>
-        { Work.FinLoaning
+    public HashSet<SkillType> FinLendingReqs = new HashSet<SkillType>
+        { SkillType.FinLoaning
         };
 
 }

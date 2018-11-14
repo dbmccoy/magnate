@@ -7,8 +7,10 @@ public interface IProductive : ITemporal {
     WorkUnit CurrentUnit { get; set; }
     Project CurrentProject { get; set; }
 
-    Dictionary<Work, float> Skills { get; set; }
+    List<Skill> Skills { get; set; }
 	float Capacity { get; set; }
+
+    Skill GetSkill(SkillType type);
 
     void AssignUnit(WorkUnit unit);
 

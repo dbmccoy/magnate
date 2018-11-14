@@ -304,24 +304,21 @@
 -i:"C:/projects/Magnate/Assets/ProCore/ProBuilder/API Examples/Procedural Mesh/ExtrudeRandomEdges.cs"
 -i:"C:/projects/Magnate/Assets/ProCore/ProBuilder/API Examples/Runtime Editing/RuntimeEdit.cs"
 -i:"C:/projects/Magnate/Assets/ProCore/ProBuilder/API Examples/Vertex Colors/HighlightNearestFace.cs"
--i:C:/projects/Magnate/Assets/resources/Ed_Btn_Node.cs
--i:C:/projects/Magnate/Assets/resources/ObjectBuilderEditor.cs
+-i:C:/projects/Magnate/Assets/Resources/Ed_Btn_Node.cs
+-i:C:/projects/Magnate/Assets/Resources/ObjectBuilderEditor.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/FSM/FSM.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/FSM/FSMState.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/ActionManager.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/BuildingConstructionAction.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/TestAction.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/TestAction2.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/BuyResidenceAction.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/JobSearchAction.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/RentResidenceAction.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/TransferAssetAction.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/goals/HaveAssetGoal.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/goals/TestGoal.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/goals/TestGoal2.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/GOAP/actions/WorkerSearchAction.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/old/GoapAction.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/old/GoapAgent.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/old/GoapPlanner.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/old/IGoap.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/PersonAgent.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/PersonMemory.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/PlannerManager.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Core/IReGoapAction.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Core/IReGoapAgent.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Core/IReGoapAgentHelper.cs
@@ -383,6 +380,8 @@
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Test/ReGoapTestGoal.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Test/ReGoapTestMemory.cs
 -i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Utilities/ReGoapLogger.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/JobBullitin.cs
+-i:C:/projects/Magnate/Assets/scripts/AI/RentalBullitin.cs
 -i:C:/projects/Magnate/Assets/scripts/bl.cs
 -i:C:/projects/Magnate/Assets/scripts/bl_Controller.cs
 -i:C:/projects/Magnate/Assets/scripts/bl_Floor.cs
@@ -417,6 +416,7 @@
 -i:C:/projects/Magnate/Assets/scripts/interfaces/IProductive.cs
 -i:C:/projects/Magnate/Assets/scripts/interfaces/IRandom.cs
 -i:C:/projects/Magnate/Assets/scripts/Intersection.cs
+-i:C:/projects/Magnate/Assets/scripts/Job.cs
 -i:C:/projects/Magnate/Assets/scripts/Lot.cs
 -i:C:/projects/Magnate/Assets/scripts/LotInfo.cs
 -i:C:/projects/Magnate/Assets/scripts/LotZoningData.cs
@@ -437,6 +437,7 @@
 -i:C:/projects/Magnate/Assets/scripts/SerializableDictionary.cs
 -i:C:/projects/Magnate/Assets/scripts/systems/Bootstrap.cs
 -i:C:/projects/Magnate/Assets/scripts/Triangulator.cs
+-i:C:/projects/Magnate/Assets/scripts/Unit.cs
 -i:C:/projects/Magnate/Assets/scripts/utility/PropertyFinder.cs
 -i:C:/projects/Magnate/Assets/scripts/utility/ToDo.cs
 -i:C:/projects/Magnate/Assets/scripts/utility/Utils.cs

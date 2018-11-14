@@ -6,24 +6,24 @@ using System;
 
 public sealed class GoapAgent : MonoBehaviour {
 
+    public float UpdateRate = 1;
+
 	private FSM stateMachine;
 
 	private FSM.FSMState idleState; // finds something to do
 	private FSM.FSMState moveToState; // moves to a target
 	private FSM.FSMState performActionState; // performs an action
 	
-	private HashSet<GoapAction> availableActions;
-	private Queue<GoapAction> currentActions;
+	private HashSet<GoapAction> availableActions = new HashSet<GoapAction>();
+	private Queue<GoapAction> currentActions = new Queue<GoapAction>();
 
 	private IGoap dataProvider; // this is the implementing class that provides our world data and listens to feedback on planning
 
-	private GoapPlanner planner;
+	public GoapPlanner planner;
 
 
 	void Start () {
 		stateMachine = new FSM ();
-		availableActions = new HashSet<GoapAction> ();
-		currentActions = new Queue<GoapAction> ();
 		planner = new GoapPlanner ();
 		findDataProvider ();
 		createIdleState ();
@@ -32,11 +32,19 @@ public sealed class GoapAgent : MonoBehaviour {
 		stateMachine.pushState (idleState);
 		loadActions ();
 	}
-	
+
+    private float sinceLastUpdate;
 
 	void Update () {
-		stateMachine.Update (this.gameObject);
-	}
+        sinceLastUpdate += Time.deltaTime;
+        if(sinceLastUpdate > UpdateRate)
+        {
+            sinceLastUpdate = 0f;
+            loadActions();
+            stateMachine.Update(this.gameObject);
+        }
+
+    }
 
 
 	public void addAction(GoapAction a) {
@@ -65,26 +73,31 @@ public sealed class GoapAgent : MonoBehaviour {
 
 			// get the world state and the goal we want to plan for
 			HashSet<KeyValuePair<string,object>> worldState = dataProvider.getWorldState();
-			HashSet<KeyValuePair<string,object>> goal = dataProvider.createGoalState();
+			List<HashSet<KeyValuePair<string,object>>> goals = dataProvider.getGoals();
 
-			// Plan
-			Queue<GoapAction> plan = planner.plan(gameObject, availableActions, worldState, goal);
-			if (plan != null) {
-				// we have a plan, hooray!
-				currentActions = plan;
-				dataProvider.planFound(goal, plan);
+            foreach (var goal in goals) //goals aren't ranked by priority yet- will use first valid
+            {
+                // Plan
+                Queue<GoapAction> plan = planner.plan(gameObject, availableActions, worldState, goal);
+                if (plan != null)
+                {
+                    // we have a plan, hooray!
+                    currentActions = plan;
+                    dataProvider.planFound(goal, plan);
 
-				fsm.popState(); // move to PerformAction state
-				fsm.pushState(performActionState);
-
-			} else {
-				// ugh, we couldn't get a plan
-				Debug.Log("<color=orange>Failed Plan:</color>"+prettyPrint(goal));
-				dataProvider.planFailed(goal);
-				fsm.popState (); // move back to IdleAction state
-				fsm.pushState (idleState);
-			}
-
+                    fsm.popState(); // move to PerformAction state
+                    fsm.pushState(performActionState);
+                    return;
+                }
+                else
+                {
+                    // ugh, we couldn't get a plan
+                    Debug.Log("<color=orange>Failed Plan:</color>" + prettyPrint(goal));
+                    dataProvider.planFailed(goal);
+                    fsm.popState(); // move back to IdleAction state
+                    fsm.pushState(idleState);
+                }
+            }
 		};
 	}
 	
@@ -192,7 +205,7 @@ public sealed class GoapAgent : MonoBehaviour {
 		foreach (GoapAction a in actions) {
 			availableActions.Add (a);
 		}
-		Debug.Log("Found actions: "+prettyPrint(actions));
+		//Debug.Log("Found actions: "+prettyPrint(actions));
 	}
 
 	public static string prettyPrint(HashSet<KeyValuePair<string,object>> state) {

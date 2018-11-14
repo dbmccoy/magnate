@@ -18,6 +18,12 @@ public class GoapPlanner
 	                              HashSet<KeyValuePair<string,object>> worldState, 
 	                              HashSet<KeyValuePair<string,object>> goal) 
 	{
+        if(goal.Count == 0)
+        {
+            Debug.Log("no goal, aborting plan");
+            return null;
+        }
+
 		// reset the actions so we can start fresh with them
 		foreach (GoapAction a in availableActions) {
 			a.doReset ();
@@ -130,7 +136,7 @@ public class GoapPlanner
 	 * Check that all items in 'test' are in 'state'. If just one does not match or is not there
 	 * then this returns false.
 	 */
-	private bool inState(HashSet<KeyValuePair<string,object>> test, HashSet<KeyValuePair<string,object>> state) {
+	public bool inState(HashSet<KeyValuePair<string,object>> test, HashSet<KeyValuePair<string,object>> state) {
 		bool allMatch = true;
 		foreach (KeyValuePair<string,object> t in test) {
 			bool match = false;

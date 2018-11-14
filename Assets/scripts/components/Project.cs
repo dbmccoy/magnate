@@ -7,6 +7,7 @@ public class Project
 {
     public IProjectable Deliverable;
     public int Phase = 1;
+    public float PercentComplete;
 
     public List<WorkReq> Requirements;
 
@@ -20,6 +21,7 @@ public class Project
     {
         if (Requirements.Where(x => x.PercentComplete() < 1).Count() == 0)
         {
+            Debug.Log("complete");
             return true;
         }
         else return false;
@@ -38,16 +40,22 @@ public class Project
 
     public void OptimizeInput(IProductive input)
     {
-        Debug.Log("optimize input");
         var reqs = GetOpenReqs();
         WorkReq highest = reqs.First();
         foreach (var req in reqs)
         {
-            if(input.Skills[req.Type] >= req.Quality && req.Quality > highest.Quality)
+            if(input.GetSkill(req.Type) >= req.Skill && input.GetSkill(req.Type) >= highest.Skill)
             {
                 highest = req;
             }
         }
-        highest.TakeInput(input.Skills[highest.Type]);
+        highest.TakeInput(input.GetSkill(highest.Type));
+        float perc = 0f;
+        foreach (var req in Requirements)
+        {
+            perc += req.PercentComplete();
+        }
+        PercentComplete = perc / Requirements.Count;
+        Debug.Log(PercentComplete);
     }
 }
