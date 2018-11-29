@@ -47,7 +47,7 @@ public class GoapPlanner
 
 		if (!success) {
 			// oh no, we didn't get a plan
-			Debug.Log("NO PLAN");
+			//Debug.Log(agent.GetComponent<Person>().name + " NO PLAN " + GoapAgent.prettyPrint(goal));
 			return null;
 		}
 
@@ -78,7 +78,8 @@ public class GoapPlanner
 			queue.Enqueue(a);
 		}
 
-		// hooray we have a plan!
+        // hooray we have a plan!
+        //Debug.Log(agent.GetComponent<Person>().name + queue.Count);
 		return queue;
 	}
 

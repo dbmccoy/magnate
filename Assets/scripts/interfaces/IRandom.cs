@@ -19,6 +19,7 @@ public interface ICondition
 public interface IProjectable
 {
     Project CreateProject();
+    void Complete();
 }
 
 public interface IWorkUnitAction
@@ -47,4 +48,20 @@ public interface ITemporal
     void AddTemporal();
     void DayTick();
     void MonthTick();
+}
+
+public class TemporalBase : ITemporal
+{
+    public virtual void AddTemporal()
+    {
+        var temporal = new Temporal(this);
+    }
+
+    public virtual void DayTick()
+    {
+    }
+
+    public virtual void MonthTick()
+    {
+    }
 }

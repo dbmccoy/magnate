@@ -366,9 +366,4 @@
 -i:C:/projects/Magnate/Assets/ProCore/ProBuilder/Editor/pb_MissingScriptEditor.cs
 -i:C:/projects/Magnate/Assets/ProCore/ProBuilder/Editor/pb_Preferences.cs
 -i:C:/projects/Magnate/Assets/ProCore/ProBuilder/Editor/pb_ScenePostProcessor.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Editor/ReGoapNodeBaseEditor.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Editor/ReGoapNodeEditor.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Editor/Test/ReGoapBenchmarkTests.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Editor/Test/ReGoapTests.cs
--i:C:/projects/Magnate/Assets/scripts/AI/GOAP/ReGOAP/Unity/Editor/Test/ReGoapTestsHelper.cs
 -v:0

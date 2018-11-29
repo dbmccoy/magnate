@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using ReGoap.Unity;
 using UnityEngine;
 using System.Linq;
 
@@ -16,6 +15,9 @@ public class Person : MonoBehaviour, IGoap, IProductive{
     public E_Race Race;
     GoapAgent agent;
     public Entity Entity;
+    [HideInInspector]
+    public bool isDummy;
+
     public Queue<Project> Projects = new Queue<Project>();
     public List<HashSet<KeyValuePair<string, object>>> GoalQueue = new List<HashSet<KeyValuePair<string, object>>>();
     public void Awake()
@@ -24,6 +26,14 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         Entity = new Entity("Entity");
         Skills = new List<Skill>();
         agent = GetComponent<GoapAgent>();
+        Entity = new Entity(name);
+        GameManager.Instance.People.Add(this);
+        SelfUnit = Entity.WorkUnits.First();
+        AssignUnit(SelfUnit);
+
+        AddComponent<TransferAssetAction>();
+        AddComponent<RentResidenceAction>();
+        AddComponent<JobSearchAction>();
         AddTemporal();
     }
 
@@ -34,7 +44,8 @@ public class Person : MonoBehaviour, IGoap, IProductive{
 
     //IProductive
     public WorkUnit CurrentUnit { get; set; }
-    public Project CurrentProject { get; set; }
+    public WorkUnit SelfUnit { get; private set; }
+    public Project Project { get; set; }
     public List<Skill> Skills { get; set; }
     public float Capacity { get; set; }
 
@@ -67,7 +78,7 @@ public class Person : MonoBehaviour, IGoap, IProductive{
 
     public void AssignProject(Project project)
     {
-        CurrentProject = project;
+        Project = project;
     }
 
     public void DoWork()
@@ -81,8 +92,19 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         new Temporal(this);
     }
 
+    public List<string> CurrentGoal;
+    public List<string> CurrentPlan;
+    public string CurUnit;
+
     public void DayTick()
     {
+        CurrentGoal.Clear();
+        foreach (var goal in getGoals())
+        {
+            CurrentGoal.Add(GoapAgent.prettyPrint(goal));
+        }
+        CurUnit = CurrentUnit.Entity.Name;
+
         if (CurrentUnit != null)
         {
             DoWork();
@@ -121,6 +143,12 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         return worldData;
     }
 
+    public void AddProject(Project p)
+    {
+        Project = p;
+        AddGoal(p.Entity.ID+"hasAsset", Project.Deliverable);
+    }
+
     public void AddGoal(HashSet<KeyValuePair<string, object>> goal)
     {
         GoalQueue.Add(goal);
@@ -128,8 +156,19 @@ public class Person : MonoBehaviour, IGoap, IProductive{
 
     public void AddGoal(string s, object o)
     {
-        var set = new HashSet<KeyValuePair<string, object>> { new KeyValuePair<string, object>(s, o) };
-        if (!GoalQueue.Contains(set))
+        var pair = new KeyValuePair<string, object>(s, o);
+        var set = new HashSet<KeyValuePair<string, object>> { pair };
+
+        var match = false;
+        foreach (var goal in GoalQueue)
+        {
+            if (goal.Contains(pair))
+            {
+                match = true;
+            }
+        }
+
+        if (!match)
         {
             GoalQueue.Add(set);
         }
@@ -142,7 +181,18 @@ public class Person : MonoBehaviour, IGoap, IProductive{
 
     public void RemoveGoal(string s, object o)
     {
-        GoalQueue.Remove(new HashSet<KeyValuePair<string, object>> { new KeyValuePair<string, object>(s, o) });
+        var goal = new KeyValuePair<string, object>(s, o);
+        foreach (var item in GoalQueue) {
+            if (item.Contains(goal)) {
+                item.Remove(goal);
+            }
+            if(item.Count == 0) {
+                GoalQueue.Remove(item);
+                return;
+            }
+        }
+        
+        //GoalQueue.Remove(goal);
     }
 
 
@@ -163,11 +213,6 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         else
         {
             RemoveGoal("hasJob", true);
-        }
-
-        foreach (var g in GoalQueue)
-        {
-            GoapAgent.prettyPrint(g);
         }
 
         //TODO: rank goals by priority
@@ -203,7 +248,12 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         // An action bailed out of the plan. State has been reset to plan again.
         // Take note of what happened and make sure if you run the same goal again
         // that it can succeed.
-        Debug.Log("<color=red>Plan Aborted</color> " + GoapAgent.prettyPrint(aborter));
+        //Debug.Log("<color=red>Plan Aborted</color> " + name + " " + GoapAgent.prettyPrint(aborter));
+        //GoalQueue = GoalQueue.OrderBy(x => Random.value).ToList();
+        foreach (var goal in GoalQueue)
+        {
+            //Debug.Log(name + " " + GoapAgent.prettyPrint(goal));
+        }
     }
 
     public bool moveAgent(GoapAction nextAction)
@@ -222,18 +272,4 @@ public class Person : MonoBehaviour, IGoap, IProductive{
     }
 }
 
-public static class MyExtensions
-{
-    public static bool HasPair(this HashSet<KeyValuePair<string, object>> h, string s, object o)
-    {
-        if (h.Contains(new KeyValuePair<string, object>(s, o)))
-            return true;
-        else return false;
-    }
-
-    public static void Add(this HashSet<KeyValuePair<string, object>> h, string s, object o)
-    {
-        h.Add(new KeyValuePair<string, object>(s, o));
-    }
-}
 

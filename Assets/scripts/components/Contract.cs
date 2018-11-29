@@ -79,7 +79,6 @@ public class Contract : ICondition, ITemporal
     public void MonthTick()
     {
 
-        throw new System.NotImplementedException();
     }
 }
 

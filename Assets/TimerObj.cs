@@ -52,18 +52,18 @@ public class TimerObj : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (GameManager.i.isPaused || !running)
+        if (GameManager.Instance.isPaused || !running)
         {
             return;
         }
 
         if (countUp)
         {
-            curValue += GameManager.i.TimeStep * Speed;
+            curValue += GameManager.Instance.TimeStep * Speed;
         }
         else
         {
-            curValue -= GameManager.i.TimeStep * Speed;
+            curValue -= GameManager.Instance.TimeStep * Speed;
         }
 
         text.text = Mathf.FloorToInt(curValue + Offset).ToString();

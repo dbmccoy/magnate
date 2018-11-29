@@ -8,6 +8,7 @@ using System;
 public class Entity : IOwnable, ITemporal {
 
     public string Name { get; set; }
+    public string ID { get; private set; }
     public List<IOwnable> Assets = new List<IOwnable>();
     public List<IOwnable> Liabilities = new List<IOwnable>();
     public Account Account;
@@ -15,14 +16,17 @@ public class Entity : IOwnable, ITemporal {
     public List<Contract> Contracts = new List<Contract>();
     public List<Project> Projects = new List<Project>();
 
-    public List<WorkUnit> WorkUnits = new List<WorkUnit> { new WorkUnit()};
+    public List<WorkUnit> WorkUnits = new List<WorkUnit> {};
 
     public Entity OwningEntity { get; set; }
 
     public Entity(string name)
     {
+        GameManager.Instance.Entities.Add(this);
         Name = name;
         AddTemporal();
+        ID = GameManager.Instance.Entities.Count.ToString();
+        WorkUnits.Add(new WorkUnit(this));
     }
 
     public virtual float GetValue()
@@ -39,7 +43,7 @@ public class Entity : IOwnable, ITemporal {
         asset.OwningEntity = this;
     }
 
-    protected virtual void DivestAsset(IOwnable asset)
+    public virtual void DivestAsset(IOwnable asset)
     {
         Assets.Remove(asset);
     }
@@ -105,8 +109,8 @@ public class Temporal
         Attached = attached;
         DayTickListener = new UnityAction(Attached.DayTick);
         MonthTickListener = new UnityAction(Attached.MonthTick);
-        GameManager.i.DayTickEvent.AddListener(DayTickListener);
-        GameManager.i.MonthTickEvent.AddListener(MonthTickListener);
+        GameManager.Instance.DayTickEvent.AddListener(DayTickListener);
+        GameManager.Instance.MonthTickEvent.AddListener(MonthTickListener);
     }
 }
 

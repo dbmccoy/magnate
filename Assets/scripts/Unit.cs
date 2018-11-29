@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unit {
+public class Unit : IOwnable{
 
     public Building Building;
     public string Address;
@@ -10,11 +10,22 @@ public class Unit {
     public int SquareFeet;
     public int Bedrooms;
 
-    public Unit(Building building, int number, int sqft, int bedrooms = 0)
+    public Unit(int sqft, int bedrooms = 0)
     {
-        Building = building;
-        UnitNumber = number;
         SquareFeet = sqft;
         Bedrooms = bedrooms;
+    }
+
+    public string Name { get; set; }
+    public Entity OwningEntity { get; set; }
+
+    public float GetValue()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void Transfer(Entity to)
+    {
+        throw new System.NotImplementedException();
     }
 }

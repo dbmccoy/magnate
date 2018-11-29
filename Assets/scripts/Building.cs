@@ -8,6 +8,7 @@ public class Building : IBuilding {
     public int Floors { get; private set; }
     public int SquareFeet { get; private set; }
     public Lot Lot { get; private set; }
+    public List<Unit> Units = new List<Unit>();
 
     public BuildingObj BuildingObj { get; private set; }
     public float PercentComplete { get; private set; }
@@ -27,11 +28,13 @@ public class Building : IBuilding {
 
     public Project CreateProject()
     {
-        var Reqs = new List<WorkReq>();
-        Reqs.Add(new WorkReq(SkillType.BldFoundation, SquareFeet, 1, order: 1, maxAmt: SquareFeet)); //needs formula
-        Reqs.Add(new WorkReq(SkillType.BldFraming, SquareFeet, 1, order: 2, maxAmt: SquareFeet));
-        Reqs.Add(new WorkReq(SkillType.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet));
-        project = new Project(this, Reqs);
+        var Reqs = new List<WorkReq>
+        {
+            new WorkReq(SkillType.BldFoundation, SquareFeet, 1, order: 1, maxAmt: SquareFeet), //needs formula
+            new WorkReq(SkillType.BldFraming, SquareFeet, 1, order: 2, maxAmt: SquareFeet),
+            new WorkReq(SkillType.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet)
+        };
+        project = new Project(OwningEntity, this, Reqs);
         return project;
     }
 
@@ -42,9 +45,14 @@ public class Building : IBuilding {
         BuildingObj.Init(this);
     }
 
-    public void CompleteConstruction()
+    public void Complete()
     {
         PercentComplete = 100f;
+        OwningEntity.AcquireAsset(this);
+        foreach (var unit in Units)
+        {
+            OwningEntity.AcquireAsset(unit);
+        }
         isComplete = true;
     }
 

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-using ReGoap.Core;
-using ReGoap.Unity;
-using ReGoap.Planner;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -55,6 +53,8 @@ public class GameManager : MonoBehaviour
         Day = 1;
         Month = 1;
         Year = 1980;
+
+        GoalDebug = GameObject.Find("GoalDebug").GetComponent<Text>();
     }
 
     // Update is called once per frame
@@ -62,8 +62,32 @@ public class GameManager : MonoBehaviour
 
     public float TimeStep;
 
+    Text GoalDebug;
+
     void Update()
     {
+        GoalDebug.text = "";
+        //switch to UI manager or something
+        foreach (var person in People) {
+            try {
+                var deletethis = person.name != null;
+            }
+            catch {
+                People.Remove(person);
+            }
+            var t = "";
+
+            foreach (var item in person.GoalQueue) {
+                t = t + GoapAgent.prettyPrint(item) + "\n    ";
+            }
+
+            if(t == "") {
+                t = "Idle";
+            }
+
+            GoalDebug.text = GoalDebug.text + person.name + ": \n    " + t + "\n";
+        }
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isPaused = !isPaused;
@@ -78,7 +102,7 @@ public class GameManager : MonoBehaviour
             TimeStep = 0f;
         }
 
-        timeSinceLastTick += GameManager.i.TimeStep;
+        timeSinceLastTick += GameManager.Instance.TimeStep;
 
         if (timeSinceLastTick >= 1)
         {
@@ -119,17 +143,17 @@ public class GameManager : MonoBehaviour
         Year++;
     }
 
-    private static GameManager _i;
-    public static GameManager i
+    private static GameManager instance;
+    public static GameManager Instance
     {
         get
         {
-            if (_i == null)
+            if (instance == null)
             {
-                _i = GameObject.Find("GameManager").GetComponent<GameManager>();
+                instance = GameObject.Find("GameManager").GetComponent<GameManager>();
             }
 
-            return _i;
+            return instance;
         }
     }
 }

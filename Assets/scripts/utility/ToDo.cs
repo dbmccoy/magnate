@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ToDo {
 
-	/* GoapAgent.loadActions make refer to workunit
+	/* add "transferAsset" goal and action
      * 
      * 
      * 

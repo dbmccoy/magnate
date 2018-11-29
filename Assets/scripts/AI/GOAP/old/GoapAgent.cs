@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 
 public sealed class GoapAgent : MonoBehaviour {
@@ -14,15 +15,15 @@ public sealed class GoapAgent : MonoBehaviour {
 	private FSM.FSMState moveToState; // moves to a target
 	private FSM.FSMState performActionState; // performs an action
 	
-	private HashSet<GoapAction> availableActions = new HashSet<GoapAction>();
+	public HashSet<GoapAction> availableActions { get; private set; } = new HashSet<GoapAction>();
 	private Queue<GoapAction> currentActions = new Queue<GoapAction>();
 
-	private IGoap dataProvider; // this is the implementing class that provides our world data and listens to feedback on planning
-
+	public IGoap dataProvider { get; private set; } // this is the implementing class that provides our world data and listens to feedback on planning
+    
 	public GoapPlanner planner;
 
 
-	void Start () {
+	void Awake () {
 		stateMachine = new FSM ();
 		planner = new GoapPlanner ();
 		findDataProvider ();
@@ -82,6 +83,7 @@ public sealed class GoapAgent : MonoBehaviour {
                 if (plan != null)
                 {
                     // we have a plan, hooray!
+                    Debug.Log(prettyPrint(goal));
                     currentActions = plan;
                     dataProvider.planFound(goal, plan);
 
@@ -92,14 +94,17 @@ public sealed class GoapAgent : MonoBehaviour {
                 else
                 {
                     // ugh, we couldn't get a plan
-                    Debug.Log("<color=orange>Failed Plan:</color>" + prettyPrint(goal));
+                    Debug.Log(GetComponent<Person>().name + " <color=orange>Failed Plan:</color>" + prettyPrint(goal));
                     dataProvider.planFailed(goal);
-                    fsm.popState(); // move back to IdleAction state
-                    fsm.pushState(idleState);
+                    Debug.Log(GetComponent<Person>().name + " " + goals.Count);
+                    continue;
                 }
             }
-		};
+            fsm.popState(); // move back to IdleAction state
+            fsm.pushState(idleState);
+        };
 	}
+
 	
 	private void createMoveToState() {
 		moveToState = (fsm, gameObj) => {

@@ -16,6 +16,11 @@ public class WorkUnit {
 
     public TypeDictionary<IWorkUnitAction> ActionDict = new TypeDictionary<IWorkUnitAction>();
 
+    public WorkUnit(Entity entity)
+    {
+        Entity = entity;
+    }
+
     public void AddProject(Project project)
     {
         if (!Projects.Contains(project))

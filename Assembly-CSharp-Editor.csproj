@@ -110,11 +110,6 @@
     <Compile Include="Assets\ProCore\ProBuilder\Editor\pb_MissingScriptEditor.cs" />
     <Compile Include="Assets\ProCore\ProBuilder\Editor\pb_Preferences.cs" />
     <Compile Include="Assets\ProCore\ProBuilder\Editor\pb_ScenePostProcessor.cs" />
-    <Compile Include="Assets\scripts\AI\GOAP\ReGOAP\Unity\Editor\ReGoapNodeBaseEditor.cs" />
-    <Compile Include="Assets\scripts\AI\GOAP\ReGOAP\Unity\Editor\ReGoapNodeEditor.cs" />
-    <Compile Include="Assets\scripts\AI\GOAP\ReGOAP\Unity\Editor\Test\ReGoapBenchmarkTests.cs" />
-    <Compile Include="Assets\scripts\AI\GOAP\ReGOAP\Unity\Editor\Test\ReGoapTests.cs" />
-    <Compile Include="Assets\scripts\AI\GOAP\ReGOAP\Unity\Editor\Test\ReGoapTestsHelper.cs" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>C:/projects/Magnate/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>

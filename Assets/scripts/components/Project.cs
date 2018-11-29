@@ -8,23 +8,31 @@ public class Project
     public IProjectable Deliverable;
     public int Phase = 1;
     public float PercentComplete;
-
+    public Entity Entity;
     public List<WorkReq> Requirements;
 
-    public Project(IProjectable deliverable, List<WorkReq> reqs)
+    public Project(Entity entity, IProjectable deliverable, List<WorkReq> reqs)
     {
+        Entity = entity;
         Deliverable = deliverable;
         Requirements = reqs;
     }
 
+    bool complete = false;
     public bool isComplete()
     {
-        if (Requirements.Where(x => x.PercentComplete() < 1).Count() == 0)
+        if (!complete)
         {
-            Debug.Log("complete");
-            return true;
+            if (Requirements.Where(x => x.PercentComplete() < 1).Count() == 0)
+            {
+                Deliverable.Complete();
+                complete = true;
+                Debug.Log("complete");
+                return true;
+            }
         }
-        else return false;
+        
+        return false;
     }
 
     public List<WorkReq> GetOpenReqs()
@@ -56,6 +64,6 @@ public class Project
             perc += req.PercentComplete();
         }
         PercentComplete = perc / Requirements.Count;
-        Debug.Log(PercentComplete);
+        //Debug.Log(PercentComplete);
     }
 }

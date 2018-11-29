@@ -1,20 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class RentalBullitin
 {
+    public RentalBullitinEvent AddRentalToBullitinEvent;
+    public List<UnitListing> Available = new List<UnitListing>();
 
-    public List<Unit> Available = new List<Unit>();
-
-    public void Add(Unit unit)
+    public void Add(UnitListing listing)
     {
-        Available.Add(unit);
+        Debug.Log("add listing");
+        Available.Add(listing);
+        AddRentalToBullitinEvent.Invoke(listing);
     }
 
-    public void Remove(Unit unit)
+    public void AddListener(UnityAction<UnitListing> method) {
+        AddRentalToBullitinEvent.AddListener(method);
+    }
+
+    public void Remove(UnitListing listing)
     {
-        Available.Remove(unit);
+        Available.Remove(listing);
     }
 
     private static RentalBullitin instance;
@@ -33,5 +40,39 @@ public class RentalBullitin
             return instance;
         }
     }
-	
+}
+
+public class UnitListing : TemporalBase
+{
+    public Unit Unit;
+    public Person PostedBy;
+    public Entity OwnedBy;
+    public float Price;
+    public int Age;
+
+    public UnitListing(Unit unit, Person person, float price)
+    {
+        Unit = unit;
+        PostedBy = person;
+        Price = price;
+    }
+
+    public void Apply(Person p)
+    {
+        PostedBy.GetComponent<RentOutUnitAction>().AddApplicant(p);
+    }
+
+    public void WithdrawApplication(Person p)
+    {
+        PostedBy.GetComponent<RentOutUnitAction>().RemoveApplicant(p);
+    }
+
+    public override void DayTick()
+    {
+        Age += 1;
+    }
+}
+
+public class RentalBullitinEvent : UnityEvent<UnitListing> {
+
 }

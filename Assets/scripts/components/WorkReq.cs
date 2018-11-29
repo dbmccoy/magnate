@@ -34,7 +34,7 @@ public class WorkReq {
         }
         var excessLevel = skill.value - Skill.value;
         CurrentAmount += 1 + (excessLevel * QualityBonus);
-        Debug.Log(Type + " : " + excessLevel * QualityBonus + " work added : " + CurrentAmount + "/" + RequiredAmount + " completed" );
+        //Debug.Log(Type + " : " + excessLevel * QualityBonus + " work added : " + CurrentAmount + "/" + RequiredAmount + " completed" );
         //overhead not implemented
     }
 }

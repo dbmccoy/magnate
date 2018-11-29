@@ -5,7 +5,7 @@ using UnityEngine;
 public interface IProductive : ITemporal {
 
     WorkUnit CurrentUnit { get; set; }
-    Project CurrentProject { get; set; }
+    Project Project { get; set; }
 
     List<Skill> Skills { get; set; }
 	float Capacity { get; set; }
