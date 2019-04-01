@@ -26,7 +26,7 @@ public class WorkUnit {
         if (!Projects.Contains(project))
         {
             Projects.Add(project);
-            Debug.Log(project.Deliverable.ToString() + " project added");
+            //Debug.Log(project.Deliverable.Name.ToString() + " project added");
         }
     }
 

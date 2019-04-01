@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Linq;
 
 public class RentalBullitin
 {
@@ -10,9 +11,8 @@ public class RentalBullitin
 
     public void Add(UnitListing listing)
     {
-        Debug.Log("add listing");
         Available.Add(listing);
-        AddRentalToBullitinEvent.Invoke(listing);
+        //AddRentalToBullitinEvent.Invoke(listing);
     }
 
     public void AddListener(UnityAction<UnitListing> method) {
@@ -22,6 +22,10 @@ public class RentalBullitin
     public void Remove(UnitListing listing)
     {
         Available.Remove(listing);
+    }
+
+    public UnitListing Search(Unit unit) {
+        return Available.Where(x => x.Unit == unit).First();
     }
 
     private static RentalBullitin instance;

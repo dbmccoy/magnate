@@ -8,6 +8,10 @@ public abstract class GoapAction : MonoBehaviour {
 	private HashSet<KeyValuePair<string,object>> preconditions;
 	private HashSet<KeyValuePair<string,object>> effects;
 
+    public bool cache() {
+        return false;
+    }
+
     private bool inRange = false;
 
 	/* The cost of performing the action. 

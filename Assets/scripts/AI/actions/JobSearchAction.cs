@@ -17,7 +17,8 @@ public class JobSearchAction : GoapAction
 
     public override bool checkProceduralPrecondition(GameObject agent)
     {
-        return JobBullitin.Instance.Available.Count > 0 && person.name != "Richie"; //TODO: for gods sake
+        
+        return JobBullitin.Instance.Available.Count > 0 && person.Job == null; //TODO: for gods sake
     }
 
     public override bool isDone()
@@ -61,7 +62,6 @@ public class JobSearchAction : GoapAction
 
             if(valid == true)
             {
-                Debug.Log("valid");
                 contenders.Add(job);
                 ranks.Add(job.Pay); //TODO: add in distance etc
             }
@@ -80,7 +80,6 @@ public class JobSearchAction : GoapAction
 
     private void Apply(Job job)
     {
-        Debug.Log("apply");
         job.Manager.GetComponent<WorkerSearchAction>().AddApplicant(person,job);
         appliedJobs.Add(job);
     }

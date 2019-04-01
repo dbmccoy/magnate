@@ -4,30 +4,52 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System;
+using System.Linq;
 
-public class Entity : IOwnable, ITemporal {
+public class Entity : IAsset, ITemporal {
 
     public string Name { get; set; }
     public string ID { get; private set; }
-    public List<IOwnable> Assets = new List<IOwnable>();
-    public List<IOwnable> Liabilities = new List<IOwnable>();
+    public List<IAsset> Assets = new List<IAsset>();
+    public List<IAsset> Liabilities = new List<IAsset>();
     public Account Account;
+
 
     public List<Contract> Contracts = new List<Contract>();
     public List<Project> Projects = new List<Project>();
 
     public List<WorkUnit> WorkUnits = new List<WorkUnit> {};
 
+    public Person Officer;
+    public List<Person> Owners;
     public Entity OwningEntity { get; set; }
+    public string Class { get; set; }
+    public float LastSalePrice { get; set; }
+    public float ValueToOwner { get; set; }
+    public List<Tuple<Entity, Person, float, float>> Valuations { get; set; }
+
 
     public Entity(string name)
     {
+        Class = "Entity";
         GameManager.Instance.Entities.Add(this);
         Name = name;
         AddTemporal();
         ID = GameManager.Instance.Entities.Count.ToString();
         WorkUnits.Add(new WorkUnit(this));
     }
+
+    public virtual void GrantActionsTo(Person p) {
+
+    }
+
+    public void RevokeActionsFrom(Person p) {
+
+    }
+
+    public float CashOnHandTarget;
+
+    public float CashOnHand;
 
     public virtual float GetValue()
     {
@@ -37,18 +59,33 @@ public class Entity : IOwnable, ITemporal {
         return value;
     }
 
-    public virtual void AcquireAsset(IOwnable asset)
-    {
-        Assets.Add(asset);
-        asset.OwningEntity = this;
+    public float ValueAccordingTo(Person p) {
+        return p.GetSensors().Select(x => x.EvaluateAsset(this)).Max();
     }
 
-    public virtual void DivestAsset(IOwnable asset)
+    Dictionary<IAsset, Sensor> AssetSensorValueDict = new Dictionary<IAsset, Sensor>();
+
+    public virtual void ReceiveAssetValueFromSensor(Sensor sensor, IAsset asset, float val) {
+        if(AssetSensorValueDict[asset] == sensor || val > asset.ValueToOwner) {
+            asset.ValueToOwner = val;
+            AssetSensorValueDict[asset] = sensor;
+        }
+    }
+
+    public virtual void AcquireAsset(IAsset asset)
+    {
+        Assets.Add(asset);
+        asset.GrantActionsTo(Officer);
+        asset.OwningEntity = this;
+
+    }
+
+    public virtual void DivestAsset(IAsset asset)
     {
         Assets.Remove(asset);
     }
 
-    public virtual void DischargeLiability(IOwnable liability)
+    public virtual void DischargeLiability(IAsset liability)
     {
         Liabilities.Remove(liability);
     }

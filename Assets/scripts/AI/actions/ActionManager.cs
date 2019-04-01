@@ -40,5 +40,9 @@ public class ActionManager {
     }
 
     public List<Type> Actions = new List<Type>();
+
+    //public Type GetAction(string s) {
+    //    Actions[0].Name
+    //}
     //public List<IHaveSkillReq> SkillReqActions = new List<IHaveSkillReq>();
 }

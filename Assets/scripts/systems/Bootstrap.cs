@@ -7,22 +7,53 @@ public class Bootstrap : MonoBehaviour {
 
     Bank Bank;
     Entity City;
+    Person Mayor;
+    Person Banker;
+    Person Developer;
+    Person Builder;
+    Person Industrialist;
+
+    public List<Neighborhood> Neighborhoods = new List<Neighborhood>();
 
     public Person NewPerson(string name)
     {
         var po = Instantiate(Resources.Load("Person")) as GameObject;
         Person np = po.GetComponent<Person>();
-        np.name = name;
+        np.Name = name;
+        po.name = name;
         return np;
     }
 
     // Use this for initialization
     void Start () {
         City = new Entity(name: "City");
+        GameManager.Instance.city = City;
+
         var Lots = GameObject.Find("Blocks").GetComponentsInChildren<Lot>().ToList();
+
+        var Blocks = GameObject.Find("Blocks").GetComponentsInChildren<Block>().ToList();
+
+        var n1 = new List<Block> { Blocks[0], Blocks[1], Blocks[3],Blocks[5] };
+        Neighborhoods.Add(new Neighborhood("one", n1));
+
+        var n2 = new List<Block> { Blocks[2], Blocks[7], Blocks[8] };
+        Neighborhoods.Add(new Neighborhood("two", n2));
+
+        Mayor = NewPerson("Mayor");
+        Mayor.CurrentEntity = City;
+        City.Officer = Mayor;
+        Mayor.AddComponent<CityGovSensor>();
+        Mayor.Job = new Job(City, City.WorkUnits[0], Mayor.Skills, Mayor);
+
+        Industrialist = NewPerson("Industrialist");
+        Industrialist.AddComponent<IndustrySensor>();
+        Industrialist.Job = new Job(Industrialist.Entity, Industrialist.CurrentUnit, Industrialist.Skills, Industrialist);
+        Industrialist.AddComponent<CommissionProjectAction>();
+        Industrialist.AddComponent<DevelopAction>();
+
         Lots.ForEach(x => City.AcquireAsset(x));
 
-
+        City.CashOnHandTarget = 10000f;
 
         var actions = ActionManager.Instance.Actions;
 
@@ -36,34 +67,35 @@ public class Bootstrap : MonoBehaviour {
 
     void ConstructionTest()
     {
-        var reqs = BuildingConstructionAction.SkillReqs;
 
+        var reqs = BuildingConstructionAction.SkillReqs;
 
         Person Richie = NewPerson("Richie");
 
         Person Buck = NewPerson("Buck");
         Buck.AssignUnit(Buck.Entity.WorkUnits[0]);
+        Buck.Job = new Job(Buck.Entity, Buck.CurrentUnit, Buck.Skills, Buck);
+        Richie.Job = new Job(Richie.Entity, Richie.CurrentUnit, Richie.Skills, Richie);
 
+        /*
         Unit unit = new Unit(800, 2);
         Unit unit2 = new Unit(800, 2);
+        Unit unit3 = new Unit(800, 2);
+        Unit unit4 = new Unit(800, 2);
+        */
 
-        Building newBuilding = new Building("new bld", Richie.Entity, (Lot)City.Assets[0], fls: 2, sqf: 1);
-        newBuilding.Units.AddRange(new List<Unit> { unit });
+        //Building newBuilding = new Building("new bld", Richie.Entity, (Lot)City.Assets[0], fls: 2, sqf: 1);
+        //newBuilding.Units.AddRange(new List<Unit> { unit, unit2, unit3, //unit4 });
 
-        var project = newBuilding.CreateProject();
+        //var project = newBuilding.CreateProject();
 
-        var commission = Richie.AddComponent<CommissionProjectAction>();
+        Richie.AddComponent<DeveloperSensor>();
+        Richie.AddComponent<CommissionProjectAction>();
+        Richie.AddComponent<DevelopAction>();
 
-        Richie.AddProject(project);
-
-        var action = Buck.AddComponent<BuildingConstructionAction>();
-        var workSearch = Buck.AddComponent<WorkerSearchAction>();
-
-        var sensor = Buck.AddComponent<ProjectSensor>();
-
-        var landlordAction = Richie.AddComponent<RentOutUnitAction>();
-        var RE_sensor = Richie.AddComponent<RealEstateSensor>();
-
+        Buck.AddComponent<BuildingConstructionAction>();
+        Buck.AddComponent<WorkerSearchAction>();
+        Buck.AddComponent<ProjectSensor>();
 
         Person Fred = NewPerson("Fred");
 

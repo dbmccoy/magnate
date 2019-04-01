@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IBuilding : IOwnable, IProjectable {
+public interface IBuilding : IAsset, IProjectable {
 
     int Floors { get; }
     int SquareFeet { get; }

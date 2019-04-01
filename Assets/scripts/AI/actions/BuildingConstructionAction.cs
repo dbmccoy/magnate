@@ -30,10 +30,10 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
 
     public override void reset()
     {
-        Project = null;
         try
         {
             removeEffect(Entity.ID + "hasAsset");
+            //Project = null;
         }
         catch { }
         try
@@ -45,7 +45,14 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
 
     public override bool isDone()
     {
-        return Project.isComplete();
+        var c = Project.isComplete();
+        if (c) {
+            person.RemoveGoal(Project.Entity.ID + "hasAsset", Project.Deliverable.Name);
+            person.Project = null;
+            Project = null;
+            inProgress = false;
+        }
+        return c;
     }
 
     public override bool checkProceduralPrecondition(GameObject agent)
@@ -58,11 +65,13 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
             var OwnerEntity = Project.Entity;
 
             building = b;
+            Debug.Log(b.Name + " PRECOND");
 
             addPrecondition("meetsWorkReqs", Project);
-            addEffect(OwnerEntity.ID+"hasAsset", b);
+            addEffect(OwnerEntity.ID+"hasAsset", b.Name);
             ok = true;
         }
+
         return ok;
     }
 
@@ -74,6 +83,7 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
         {
             inProgress = true;
 
+            Debug.Log(building.Name + " BEGIN");
             building.StartConstruction();
             person.CurrentUnit.AddProject(Project);
         }

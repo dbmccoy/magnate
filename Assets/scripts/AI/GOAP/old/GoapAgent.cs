@@ -7,7 +7,7 @@ using System.Linq;
 
 public sealed class GoapAgent : MonoBehaviour {
 
-    public float UpdateRate = 1;
+    public float UpdateRate = .1f;
 
 	private FSM stateMachine;
 
@@ -17,8 +17,9 @@ public sealed class GoapAgent : MonoBehaviour {
 	
 	public HashSet<GoapAction> availableActions { get; private set; } = new HashSet<GoapAction>();
 	private Queue<GoapAction> currentActions = new Queue<GoapAction>();
+    List<Queue<GoapAction>> allPlans = new List<Queue<GoapAction>>();
 
-	public IGoap dataProvider { get; private set; } // this is the implementing class that provides our world data and listens to feedback on planning
+    public IGoap dataProvider { get; private set; } // this is the implementing class that provides our world data and listens to feedback on planning
     
 	public GoapPlanner planner;
 
@@ -37,12 +38,13 @@ public sealed class GoapAgent : MonoBehaviour {
     private float sinceLastUpdate;
 
 	void Update () {
+        sinceLastUpdate = 0f;
+        loadActions();
+        stateMachine.Update(this.gameObject);
         sinceLastUpdate += Time.deltaTime;
         if(sinceLastUpdate > UpdateRate)
         {
-            sinceLastUpdate = 0f;
-            loadActions();
-            stateMachine.Update(this.gameObject);
+            
         }
 
     }
@@ -68,6 +70,8 @@ public sealed class GoapAgent : MonoBehaviour {
 		return currentActions.Count > 0;
 	}
 
+    public HashSet<KeyValuePair<string, object>> Goal;
+
 	private void createIdleState() {
 		idleState = (fsm, gameObj) => {
 			// GOAP planning
@@ -76,15 +80,28 @@ public sealed class GoapAgent : MonoBehaviour {
 			HashSet<KeyValuePair<string,object>> worldState = dataProvider.getWorldState();
 			List<HashSet<KeyValuePair<string,object>>> goals = dataProvider.getGoals();
 
+            goals.Shuffle();
+
             foreach (var goal in goals) //goals aren't ranked by priority yet- will use first valid
             {
+                Goal = goal;
+
                 // Plan
                 Queue<GoapAction> plan = planner.plan(gameObject, availableActions, worldState, goal);
                 if (plan != null)
                 {
                     // we have a plan, hooray!
-                    Debug.Log(prettyPrint(goal));
                     currentActions = plan;
+                    var match = true;
+
+                    foreach (var item in allPlans) {
+                        if (item.SequenceEqual(plan)) {
+                            match = false;
+                        }
+                    }
+
+                    if (match) allPlans.Add(plan);
+
                     dataProvider.planFound(goal, plan);
 
                     fsm.popState(); // move to PerformAction state
@@ -94,9 +111,8 @@ public sealed class GoapAgent : MonoBehaviour {
                 else
                 {
                     // ugh, we couldn't get a plan
-                    Debug.Log(GetComponent<Person>().name + " <color=orange>Failed Plan:</color>" + prettyPrint(goal));
+                    //Debug.Log(GetComponent<Person>().name + " <color=orange>Failed Plan:</color>" + prettyPrint(goal));
                     dataProvider.planFailed(goal);
-                    Debug.Log(GetComponent<Person>().name + " " + goals.Count);
                     continue;
                 }
             }
@@ -143,6 +159,19 @@ public sealed class GoapAgent : MonoBehaviour {
 			}*/
 		};
 	}
+
+    private int currentPlanInt = 0;
+
+    Queue<GoapAction> NextPlan() {
+        var q = allPlans[currentPlanInt];
+        currentPlanInt++;
+        if (currentPlanInt == allPlans.Count) currentPlanInt = 0;
+        return q;
+    }
+
+    public GoapAction Peek() {
+        return currentActions.Peek();
+    }
 	
 	private void createPerformActionState() {
 
@@ -158,9 +187,11 @@ public sealed class GoapAgent : MonoBehaviour {
 				return;
 			}
 
+            currentActions = NextPlan();
+
 			GoapAction action = currentActions.Peek();
 			if ( action.isDone() ) {
-				// the action is done. Remove it so we can perform the next one
+                // the action is done. Remove it so we can perform the next one
 				currentActions.Dequeue();
 			}
 
@@ -186,6 +217,7 @@ public sealed class GoapAgent : MonoBehaviour {
 				}
 
 			} else {
+                allPlans.Remove(currentActions);
 				// no actions left, move to Plan state
 				fsm.popState();
 				fsm.pushState(idleState);

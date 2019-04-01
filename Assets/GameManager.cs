@@ -14,6 +14,8 @@ public class GameManager : MonoBehaviour
     public List<Entity> Entities = new List<Entity>();
     public List<Person> People = new List<Person>();
 
+    public float BaseLandCost;
+
     public bool isPaused;
 
     public TimerObj DayTimer;
@@ -55,6 +57,11 @@ public class GameManager : MonoBehaviour
         Year = 1980;
 
         GoalDebug = GameObject.Find("GoalDebug").GetComponent<Text>();
+        BullitinDebug = GameObject.Find("BullitinDebug").GetComponent<Text>();
+    }
+
+    public float GetTimeStamp() {
+        return DaysSinceStart;
     }
 
     // Update is called once per frame
@@ -63,6 +70,7 @@ public class GameManager : MonoBehaviour
     public float TimeStep;
 
     Text GoalDebug;
+    Text BullitinDebug;
 
     void Update()
     {
@@ -78,16 +86,23 @@ public class GameManager : MonoBehaviour
             var t = "";
 
             foreach (var item in person.GoalQueue) {
-                t = t + GoapAgent.prettyPrint(item) + "\n    ";
+                t = t + "    " + GoapAgent.prettyPrint(item) + "\n";
             }
 
             if(t == "") {
                 t = "Idle";
             }
 
-            GoalDebug.text = GoalDebug.text + person.name + ": \n    " + t + "\n";
-        }
+            GoalDebug.text = GoalDebug.text +"\n"+ person.name + ": \n   <color=blue>" + person.GetPlan() + "</color>" + "\n" + t;
 
+        }
+        /*
+        BullitinDebug.text = "";
+
+        foreach (var item in RentalBullitin.Instance.Available) {
+            BullitinDebug.text = BullitinDebug.text + item.Unit.Address + "\n";
+        }
+        */
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isPaused = !isPaused;
@@ -157,3 +172,4 @@ public class GameManager : MonoBehaviour
         }
     }
 }
+

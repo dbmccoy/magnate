@@ -49,6 +49,7 @@ public class WorkerSearchAction : GoapAction, IProjectAction
                 missingSkills.Add(workReq.Skill);
             }
         }
+        //Debug.Log("missing skills = " + missingSkills.Count);
         return missingSkills.Count == 0;
     }
 
@@ -87,7 +88,6 @@ public class WorkerSearchAction : GoapAction, IProjectAction
                 JobBullitin.Instance.Add(newPosting);
                 OpenJobs.Add(newPosting);
                 postedSkills.Add(skill);
-                Debug.Log("now there's a job posted");
             }
         }
 
@@ -128,7 +128,7 @@ public class WorkerSearchAction : GoapAction, IProjectAction
 
     public void Hire(Person p, Job job)
     {
-        Debug.Log("hire");
+
         p.JobName = "sample job";
         p.Job = job;
         JobBullitin.Instance.Remove(job);

@@ -6,6 +6,7 @@ using UnityEngine.Events;
 
 public class ProjectBullitin
 {
+
     public ProjectEvent AddProjectToBullitinEvent;
     public List<Project> Available = new List<Project>();
 
@@ -15,39 +16,34 @@ public class ProjectBullitin
         AddProjectToBullitinEvent.Invoke(listing);
     }
 
-    public void AddListener(UnityAction<Project> method)
-    {
-        AddProjectToBullitinEvent.AddListener(method);
-    }
-
-    public void RemoveListener(UnityAction<Project> method)
-    {
-        AddProjectToBullitinEvent.RemoveListener(method);
-    }
-
-    public void Remove(Project listing)
-    {
+    public void Remove(Project listing) {
         Available.Remove(listing);
     }
 
-    private static ProjectBullitin instance;
+    public void AddListener(UnityAction<Project> method) {
+        AddProjectToBullitinEvent.AddListener(method);
+    }
+
+    public void RemoveListener(UnityAction<Project> method) {
+        AddProjectToBullitinEvent.RemoveListener(method);
+    }
 
     private ProjectBullitin() {
         AddProjectToBullitinEvent = new ProjectEvent();
     }
 
-    public static ProjectBullitin Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
+    private static ProjectBullitin instance;
+
+    public static ProjectBullitin Instance {
+        get {
+            if (instance == null) {
                 instance = new ProjectBullitin();
             }
 
             return instance;
         }
     }
+
 }
 
 public class ProjectEvent : UnityEvent<Project>

@@ -13,7 +13,17 @@ public class HousingSensor : Sensor {
 
     }
 
+    public override HashSet<KeyValuePair<string, object>> ReturnWorldData() {
+        var data = new HashSet<KeyValuePair<string, object>>();
+
+        return data;
+    }
+
     private void EvaluateUnit(UnitListing listing) {
 
+    }
+
+    public override float EvaluateAsset(IAsset asset) {
+        return 0f;
     }
 }

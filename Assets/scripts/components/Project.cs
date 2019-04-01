@@ -7,11 +7,15 @@ public class Project
 {
     public IProjectable Deliverable;
     public int Phase = 1;
+    public int Repetitions;
+    public int CompletedCount;
     public float PercentComplete;
     public Entity Entity;
     public List<WorkReq> Requirements;
+    public HashSet<KeyValuePair<string, object>> prereqs = new HashSet<KeyValuePair<string, object>>();
+    public HashSet<KeyValuePair<string, object>> effects = new HashSet<KeyValuePair<string, object>>();
 
-    public Project(Entity entity, IProjectable deliverable, List<WorkReq> reqs)
+    public Project(Entity entity, IProjectable deliverable, List<WorkReq> reqs, int num = 1)
     {
         Entity = entity;
         Deliverable = deliverable;
@@ -26,13 +30,19 @@ public class Project
             if (Requirements.Where(x => x.PercentComplete() < 1).Count() == 0)
             {
                 Deliverable.Complete();
-                complete = true;
-                Debug.Log("complete");
-                return true;
+
+                CompletedCount += 1;
+                if(CompletedCount >= Repetitions && Repetitions != -1) {
+                    complete = true;
+                    return true;
+                }
+                else {
+                    Requirements.ForEach(x => x.Reset());
+                }
             }
         }
         
-        return false;
+        return complete;
     }
 
     public List<WorkReq> GetOpenReqs()

@@ -32,15 +32,15 @@ public class TransferAssetAction : GoapAction {
 
     public override bool isDone()
     {
-        return TransferTo.Assets.Contains(Project.Deliverable as IOwnable);
+        return TransferTo.Assets.Contains(Project.Deliverable as IAsset);
     }
 
     public override bool perform(GameObject agent)
     {
-        if(Entity.Assets.Contains(Project.Deliverable as IOwnable))
+        if(Entity.Assets.Contains(Project.Deliverable as IAsset))
         {
-            TransferTo.AcquireAsset(Project.Deliverable as IOwnable);
-            Entity.DivestAsset(Project.Deliverable as IOwnable);
+            TransferTo.AcquireAsset(Project.Deliverable as IAsset);
+            Entity.DivestAsset(Project.Deliverable as IAsset);
         }
         return true;
     }

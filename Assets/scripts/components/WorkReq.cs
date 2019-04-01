@@ -26,6 +26,10 @@ public class WorkReq {
         return CurrentAmount / RequiredAmount;
     }
 
+    public void Reset() {
+        CurrentAmount = 0f;
+    }
+
     public void TakeInput(Skill skill)
     {
         if (skill == null)

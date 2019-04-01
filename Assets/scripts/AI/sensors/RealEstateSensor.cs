@@ -11,6 +11,7 @@ public class RealEstateSensor : Sensor {
     public List<Unit> myUnits = new List<Unit>();
 
     public List<Unit> listedUnits = new List<Unit>();
+    public List<Unit> rentedUnits = new List<Unit>();
 
     public override void Sense()
     {
@@ -34,13 +35,19 @@ public class RealEstateSensor : Sensor {
         // do thinking, decide to put all units on rental market
         foreach (var unit in myUnits)
         {
-            if (!listedUnits.Contains(unit))
+            if (!listedUnits.Has(unit) && !rentedUnits.Has(unit) )
             {
-                listedUnits.Add(unit);
-                Debug.Log(person.name + " rent out unit goal added");
-                person.AddGoal("rentOutUnit", unit);
+                //listedUnits.Add(unit);
+                //Debug.Log(person.name + " rent out unit goal added " + unit.Address);
+                person.AddGoal("rentOut"+unit.Address, unit);
             }
         }
+    }
+
+    public override HashSet<KeyValuePair<string, object>> ReturnWorldData() {
+        var data = new HashSet<KeyValuePair<string, object>>();
+
+        return data;
     }
 
     public override void AddTemporal()
@@ -54,4 +61,7 @@ public class RealEstateSensor : Sensor {
         Sense();
     }
 
+    public override float EvaluateAsset(IAsset asset) {
+        return 0f;
+    }
 }

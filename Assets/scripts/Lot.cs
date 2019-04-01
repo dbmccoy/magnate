@@ -5,21 +5,73 @@ using System.Diagnostics.SymbolStore;
 using UnityEngine;
 using System.Linq;
 
-public class Lot : MonoBehaviour, IOwnable {
+public class Lot : MonoBehaviour, IAsset {
 
     //IAsset implementation
     public string Name { get; set; }
     public Entity OwningEntity { get; set; }
     public string Address;
+    public float SquareFeet;
+    public Neighborhood Neighborhood { get; set; }
+    public string Class { get; set; }
+    public float ValueToOwner { get; set; }
+
+    public List<Building> Buildings = new List<Building>();
+    
+    float lastSalePrice;
+    public float LastSalePrice {
+        get {
+            if (lastSalePrice == 0) {
+                lastSalePrice = GameManager.Instance.BaseLandCost * SquareFeet;
+            }
+            return lastSalePrice;
+        }
+        set => lastSalePrice = value; }
+    public List<Tuple<Entity, Person, float, float>> Valuations { get; set; }
+
+    public void SetNeighborhood(Neighborhood n) {
+        Neighborhood = n;
+    }
+
+    public bool CanBuild(Building b) {
+        //TODO: make this handle additions and multi building lots
+
+        if (Buildings.Count == 0) {
+            return true;
+        }
+        else return false;
+    }
 
     public float GetValue()
     {
-        return 0f;
+        return block.Lots.Select(x => x.LastSalePrice / x.SquareFeet).Average() * SquareFeet;
+    }
+
+    public float ValueAccordingTo(Person p) {
+        return p.GetSensors().Select(x => x.EvaluateAsset(this)).Max();
+    }
+
+    public void GrantActionsTo(Person p) {
+        if (p.GetComponent<RealEstateSensor>() == null) {
+            p.AddComponent<RealEstateSensor>();
+        }
+
+    }
+
+    public void RevokeActionsFrom(Person p) {
+
     }
 
     public void Transfer(Entity to)
     {
-
+        if(to != OwningEntity) {
+            OwningEntity.DivestAsset(this);
+        }
+        OwningEntity = to;
+        OwningEntity.AcquireAsset(this);
+        foreach (var b in Buildings) {
+            OwningEntity.AcquireAsset(b);
+        }
     }
 
     public Road road;
@@ -119,6 +171,25 @@ public class Lot : MonoBehaviour, IOwnable {
             ReturnBuildableVerts();
             //Bug.Mark(frontEdge.start()); Bug.Mark(frontEdge.end());
         }
+    }
+
+    float meshArea() {
+        float temp = 0;
+        int i = 0;
+        for (; i < verts.Count; i++) {
+            if (i != verts.Count - 1) {
+                float mulA = verts[i].x * verts[i + 1].z;
+                float mulB = verts[i + 1].x * verts[i].z;
+                temp = temp + (mulA - mulB);
+            }
+            else {
+                float mulA = verts[i].x * verts[0].z;
+                float mulB = verts[0].x * verts[i].z;
+                temp = temp + (mulA - mulB);
+            }
+        }
+        temp *= 0.5f;
+        return Mathf.Abs(temp);
     }
 
     [HideInInspector] public Vector3 frontstart, frontend;
@@ -251,6 +322,8 @@ public class Lot : MonoBehaviour, IOwnable {
     // Update is called once per frame
     void Start () {
         frontstart = frontEdge.start(); frontend = frontEdge.end();
+
+        SquareFeet = meshArea() * 600f;
     }
 }
 

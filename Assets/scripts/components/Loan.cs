@@ -1,15 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Linq;
 
-public class Loan : IOwnable, ITemporal {
+public class Loan : IAsset, ITemporal {
 
     public string Name { get; set; }
     public Entity OwningEntity { get; set; }
 
     public Entity Borrower;
+    public List<string> Tags { get; set; }
 
-    public IOwnable Collateral;
+    public IAsset Collateral;
 
     public float Balance;
     public float Rate;
@@ -17,7 +20,7 @@ public class Loan : IOwnable, ITemporal {
     public int PeriodsDelinquent;
     public float TotalPayments;
 
-    public Loan(Bank bank, Entity borrower, IOwnable collateral,
+    public Loan(Bank bank, Entity borrower, IAsset collateral,
                 float amount, float rate, int term)
     {
         OwningEntity = bank;
@@ -29,9 +32,26 @@ public class Loan : IOwnable, ITemporal {
         AddTemporal();
     }
 
+    public string Class { get; set; }
+    public float LastSalePrice { get; set; }
+    public float ValueToOwner { get; set; }
+    public List<Tuple<Entity, Person, float, float>> Valuations { get; set; }
+
+    public void GrantActionsTo(Person p) {
+
+    }
+
+    public void RevokeActionsFrom(Person p) {
+
+    }
+
     public float GetValue()
     {
         return Balance; //not true
+    }
+
+    public float ValueAccordingTo(Person p) {
+        return p.GetSensors().Select(x => x.EvaluateAsset(this)).Max();
     }
 
     public float ComputeInterest()

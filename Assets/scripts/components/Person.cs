@@ -7,35 +7,60 @@ using System.Linq;
 public class Person : MonoBehaviour, IGoap, IProductive{
 
     public string Name;
-    public string Residence; //convert to unit
+    [SerializeField]
+    public Unit Residence;
 
-    public Job Job; //convert to Job
+    public Job Job;
     public string JobName;
 
     public E_Race Race;
     GoapAgent agent;
     public Entity Entity;
+    public Entity CurrentEntity;
+    public Personality Personality;
     [HideInInspector]
     public bool isDummy;
 
     public Queue<Project> Projects = new Queue<Project>();
+    public Project PlanningProject;
     public List<HashSet<KeyValuePair<string, object>>> GoalQueue = new List<HashSet<KeyValuePair<string, object>>>();
     public void Awake()
     {
-        Name = "Jeff";
-        Entity = new Entity("Entity");
+        Entity = new Entity(name);
+        Entity.Officer = this;
+        CurrentEntity = Entity;
         Skills = new List<Skill>();
         agent = GetComponent<GoapAgent>();
-        Entity = new Entity(name);
+        
         GameManager.Instance.People.Add(this);
         SelfUnit = Entity.WorkUnits.First();
         AssignUnit(SelfUnit);
 
         AddComponent<TransferAssetAction>();
-        AddComponent<RentResidenceAction>();
+        AddComponent<SellAssetAction>();
+        AddComponent<BuyAssetAction>();
+        AddComponent<AcquireResidenceAction>();
         AddComponent<JobSearchAction>();
         AddTemporal();
     }
+
+    //Sensors
+
+    List<Sensor> sensors = new List<Sensor>();
+
+    public void AddSensor(Sensor s) {
+        sensors.Add(s);
+    }
+
+    public void RemoveSensor(Sensor s) {
+        sensors.Remove(s);
+        //update permissions matrix?
+    }
+
+    public List<Sensor> GetSensors() {
+        return sensors;
+    }
+
 
     public GoapAgent GetAgent()
     {
@@ -132,21 +157,28 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         return gameObject.AddComponent<T>();
     }
 
+    HashSet<KeyValuePair<string, object>> worldState = new HashSet<KeyValuePair<string, object>>();
+
+
+
     public HashSet<KeyValuePair<string, object>> getWorldState()
     {
         HashSet<KeyValuePair<string, object>> worldData = new HashSet<KeyValuePair<string, object>>
         {
             new KeyValuePair<string, object>("hasJob", (Job != null)),
-            new KeyValuePair<string, object>("hasResidence", (Residence.Length > 0))
+            new KeyValuePair<string, object>("hasResidence", (Residence != null))
         };
+
+        sensors.ForEach(x => worldData.UnionWith(x.ReturnWorldData()));
 
         return worldData;
     }
 
     public void AddProject(Project p)
     {
+        Debug.Log(Name + " Adding Project " + p.Deliverable.Name);
         Project = p;
-        AddGoal(p.Entity.ID+"hasAsset", Project.Deliverable);
+        AddGoal(p.Entity.ID+"hasAsset", Project.Deliverable.Name);
     }
 
     public void AddGoal(HashSet<KeyValuePair<string, object>> goal)
@@ -215,15 +247,39 @@ public class Person : MonoBehaviour, IGoap, IProductive{
             RemoveGoal("hasJob", true);
         }
 
+        if(GoalQueue.Count == 0) {
+            currentPlan = "<color=green>idle</color>";
+        }
+
         //TODO: rank goals by priority
         return GoalQueue;
     }
 
+    public HashSet<KeyValuePair<string,object>> FindGoals(string s) {
+        var matches = new HashSet<KeyValuePair<string, object>>();
+
+        foreach(HashSet<KeyValuePair<string, object>> set in getGoals()) {
+            foreach(var g in set) {
+                if (g.Key.Contains(s)) {
+                    matches.Add(g);
+                }
+            }
+        }
+
+        return matches;
+    }
+
     public void planFailed(HashSet<KeyValuePair<string, object>> failedGoal)
     {
+        currentPlan = "<color=red>no plan</color>";
         // Not handling this here since we are making sure our goals will always succeed.
         // But normally you want to make sure the world state has changed before running
         // the same goal again, or else it will just fail.
+    }
+
+    private string currentPlan;
+    public string GetPlan() {
+        return currentPlan;
     }
 
     public void planFound(HashSet<KeyValuePair<string, object>> goal, Queue<GoapAction> actions)
@@ -234,13 +290,14 @@ public class Person : MonoBehaviour, IGoap, IProductive{
             //Debug.Log(item);
         }
         //Debug.Log(GoapAgent.prettyPrint(goal));
-        //Debug.Log("<color=green>Plan found</color> " + GoapAgent.prettyPrint(actions));
+        // Debug.Log("<color=green>" + Name + ": Plan found</color> " + GoapAgent.prettyPrint(actions) + ": " + GoapAgent.prettyPrint(goal));
+        currentPlan = GoapAgent.prettyPrint(actions);
     }
 
     public void actionsFinished()
     {
-        // Everything is done, we completed our actions for this gool. Hooray!
-        Debug.Log("<color=blue>Actions completed</color>");
+        // Everything is done, we completed our actions for this goal. Hooray!
+        Debug.Log("<color=blue>" + Name + " Actions completed</color>");
     }
 
     public void planAborted(GoapAction aborter)

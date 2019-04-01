@@ -18,13 +18,20 @@ public class ProjectSensor : Sensor {
 
     }
 
+    public override HashSet<KeyValuePair<string, object>> ReturnWorldData() {
+        var data = new HashSet<KeyValuePair<string, object>>();
+
+        return data;
+    }
+
+
     public void EnqueProject(Project project)
     {
         //bid process goes where?
-        if (CanDeliver(project))
-        {
+        if (CanDeliver(project)) {
             person.AddProject(project);
         }
+        else Debug.Log("fail");
     }
 
     public bool CanDeliver(Project project)
@@ -33,7 +40,7 @@ public class ProjectSensor : Sensor {
         person = GetComponent<Person>();
         var state = Agent.dataProvider.getWorldState();
         HashSet<KeyValuePair<string, object>> goal = new HashSet<KeyValuePair<string, object>>();
-        goal.Add(new KeyValuePair<string, object>(project.Entity.ID+"hasAsset", project.Deliverable));
+        goal.Add(new KeyValuePair<string, object>(project.Entity.ID+"hasAsset", project.Deliverable.Name));
 
         var dummy = new GameObject("dummy");
         var actions = Agent.GetComponents(typeof(GoapAction));
@@ -51,5 +58,9 @@ public class ProjectSensor : Sensor {
 
         Destroy(dummy);
         return plan != null;
+    }
+
+    public override float EvaluateAsset(IAsset asset) {
+        throw new System.NotImplementedException();
     }
 }

@@ -10,11 +10,16 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
     public Entity Entity { get; set; }
     public WorkUnit WorkUnit { get; set; }
 
+    DeveloperSensor devSensor;
+
     public void Awake()
     {
         person = GetComponent<Person>();
         WorkUnit = person.CurrentUnit; //TODO: fix
         Agent = GetComponent<GoapAgent>();
+        devSensor = GetComponent<DeveloperSensor>();
+
+        addPrecondition("hasProject", true);
     }
 
     public Project Project { get; set; }
@@ -22,21 +27,52 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
     public override bool checkProceduralPrecondition(GameObject agent)
     {
         Entity = person.CurrentUnit.Entity;
-        if(person.Project != null)
-        {
-            Project = person.Project;
-            addEffect(Entity.ID+"hasAsset", Project.Deliverable);
+
+        if (devSensor.Priority != null) {
+            addEffect("develop" + devSensor.Priority.Name, true);
+        }
+
+        if(Project == null) {
+            Project = person.PlanningProject;
+        }
+
+        if(Project != null) {
+            foreach (var i in Project.prereqs) {
+                addPrecondition(i.Key, i.Value);
+                //Debug.Log("adding precond " + i.Key + ":" + i.Value.ToString());
+            }
             return true;
         }
         return false;
+
+        if (person.Project != null)
+        {
+            
+            //addEffect(Entity.ID+"hasAsset", Project.Deliverable);
+            return true;
+        }
     }
 
     public override bool isDone()
     {
-        var done = Entity.Assets.Contains(Project.Deliverable as IOwnable);
+        if(Project == null || Project.Deliverable == null) {
+            return false;
+        }
+        var done = Entity.Assets.Contains(Project.Deliverable as IAsset);
         if (done) {
-            Debug.Log("done");
-            person.RemoveGoal(Entity.ID + "hasAsset", Project.Deliverable);
+            person.RemoveGoal(Entity.ID + "hasAsset", Project.Deliverable.Name);
+            Debug.Log("taking possession of " + Project.Deliverable.Name);
+            person.Project = null;
+            person.PlanningProject = null;
+
+            //reset added preconditions
+            foreach (var i in Project.prereqs) {
+                removePrecondition(i.Key);
+                Debug.Log("Removing precond " + i.Key + " " + i.Value);
+            }
+
+            Project = null;
+            isPosted = false;
         }
         return done;
     }
@@ -47,8 +83,10 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
     {
         if (!isPosted)
         {
+            Project = person.Project;
             isPosted = true;
             ProjectBullitin.Instance.Add(Project);
+            Debug.Log("added project to bull");
         }
         return true;
     }

@@ -13,7 +13,7 @@ public class RentOutUnitAction : GoapAction {
 
     public RentOutUnitAction()
     {
-        
+        addEffect("gainIncome", true);
     }
 
     public void Awake()
@@ -27,20 +27,26 @@ public class RentOutUnitAction : GoapAction {
     public override bool checkProceduralPrecondition(GameObject agent)
     {
         Unit = null;
+        complete = false;
         Entity = person.CurrentUnit.Entity;
 
         //TODO: make this faster
+        addEffect("hasResidence", true);
 
         foreach (var goalSet in person.GoalQueue)
         {
             foreach (var goal in goalSet)
             {
-                if (goal.Key == "rentOutUnit")
+                if (goal.Key.StartsWith("rentOut"))
                 {
-                    Unit = (Unit)goal.Value;
-                    addEffect("rentOutUnit", Unit);
+                    if (!GetComponent<RealEstateSensor>().listedUnits.Has((Unit)goal.Value)
+                        && !GetComponent<RealEstateSensor>().rentedUnits.Has((Unit) goal.Value)){
+                        Unit = (Unit)goal.Value;
+                        inProgress = false;
+                        addEffect("rentOut" + Unit.Address, Unit);
+                        return true;
+                    }
                     //TODO: addEffect("getMoney", unit value from sensor)
-                    return true;
                 }
             }
         }
@@ -50,7 +56,13 @@ public class RentOutUnitAction : GoapAction {
 
     public override bool isDone()
     {
-        return false;
+        if (complete) {
+            applicants.Clear();
+            person.RemoveGoal("rentOut"+Unit.Address, Unit);
+            Unit = null;
+            Listing = null;
+        }
+        return complete;
     }
 
     bool inProgress = false;
@@ -73,7 +85,6 @@ public class RentOutUnitAction : GoapAction {
     {
         if (!inProgress)
         {
-            Debug.Log("add listing");
             inProgress = true;
 
             Listing = new UnitListing(Unit, person, 1000); //TODO: get price from sensor
@@ -96,7 +107,9 @@ public class RentOutUnitAction : GoapAction {
             topCandidate = candidates[ranks.IndexOf(ranks.Max())];
             //if topCandate clears fitness bar rent the unit
             //both parties sign lease
-            topCandidate.GetComponent<RentResidenceAction>().Complete(Listing);
+            RentalBullitin.Instance.Remove(Listing);
+            topCandidate.GetComponent<AcquireResidenceAction>().Complete(Listing);
+            GetComponent<RealEstateSensor>().rentedUnits.Add(Listing.Unit);
             complete = true;
         }
         return true;
@@ -109,5 +122,6 @@ public class RentOutUnitAction : GoapAction {
 
     public override void reset()
     {
+        
     }
 }

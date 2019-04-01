@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Job
 {
@@ -16,6 +17,9 @@ public class Job
         Unit = unit;
         Skills = skills;
         Manager = manager;
+    }
+
+    public void Assign(Person person) {
     }
 
     //Location

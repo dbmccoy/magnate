@@ -21,6 +21,10 @@ public class Block: MonoBehaviour {
     public GameObject marker;
     public GameObject redMarker;
     private Block self;
+
+    public void SetNeighborhood(Neighborhood n) {
+        Lots.ForEach(x => x.SetNeighborhood(n));
+    }
     
     public void InitBlock(List<Segment> _boundingSegments) {
         marker = (GameObject)Resources.Load("boundingPoint");

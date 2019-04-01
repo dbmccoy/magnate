@@ -11,7 +11,9 @@ public enum SkillType {
 
     FinLoaning,
 
-    PolCanvas
+    PolCanvas,
+
+    SteelWorking
 }
 
 public class Skill
