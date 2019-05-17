@@ -60,7 +60,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\BullitinDebug.cs" />
     <Compile Include="Assets\GameManager.cs" />
     <Compile Include="Assets\NodeObj.cs" />
     <Compile Include="Assets\ProCore\ProBuilder\API Examples\Icosphere FFT\Scripts\CameraControls.cs" />
@@ -160,6 +159,11 @@
     <Compile Include="Assets\scripts\systems\LotMap.cs" />
     <Compile Include="Assets\scripts\systems\PeopleSpawner.cs" />
     <Compile Include="Assets\scripts\Triangulator.cs" />
+    <Compile Include="Assets\scripts\UI\AgentDebug.cs" />
+    <Compile Include="Assets\scripts\UI\AgentDebugToggle.cs" />
+    <Compile Include="Assets\scripts\UI\BullitinDebug.cs" />
+    <Compile Include="Assets\scripts\UI\LotMapDebug.cs" />
+    <Compile Include="Assets\scripts\UI\SensorDebug.cs" />
     <Compile Include="Assets\scripts\Unit.cs" />
     <Compile Include="Assets\scripts\utility\Extensions.cs" />
     <Compile Include="Assets\scripts\utility\PropertyFinder.cs" />

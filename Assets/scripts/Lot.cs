@@ -240,6 +240,15 @@ public class Lot : MonoBehaviour, IAsset {
     public void Awake()
     {
         GenZone();
+        GameManager.Instance.Lots.Add(this);
+    }
+
+    public float DistanceTo(Lot to) {
+        return Vector3.Distance(this.center, to.center);
+    }
+
+    public float BuildableSquareFeet() {
+        return SquareFeet * 10f; //calc buildable area * height limit for zone/tech
     }
 
     public Zone.ZoneClass z_Class;

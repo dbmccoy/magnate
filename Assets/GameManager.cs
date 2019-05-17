@@ -13,6 +13,9 @@ public class GameManager : MonoBehaviour
 
     public List<Entity> Entities = new List<Entity>();
     public List<Person> People = new List<Person>();
+    public List<Lot> Lots = new List<Lot>();
+
+    public Lot Port;
 
     public float BaseLandCost;
 
@@ -32,6 +35,7 @@ public class GameManager : MonoBehaviour
 
     public UnityEvent DayTickEvent;
     public UnityEvent MonthTickEvent;
+    public UnityEvent LotMapSyncEvent;
 
     // Use this for initialization
     void Awake()
@@ -135,6 +139,7 @@ public class GameManager : MonoBehaviour
     public void DayTick()
     {
         DayTickEvent.Invoke();
+        LotMapSyncEvent.Invoke();
 
         Day++;
         DaysSinceStart++;

@@ -96,6 +96,10 @@ public class CityGovSensor : Sensor
         
     }
 
+    public override List<LotMap> GetLotMaps() {
+        return null;
+    }
+
 
     //goals:
     //DevelopArea

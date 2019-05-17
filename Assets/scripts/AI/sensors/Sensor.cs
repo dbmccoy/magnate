@@ -17,6 +17,8 @@ public abstract class Sensor : MonoBehaviour, ITemporal {
         AddTemporal();
     }
 
+    public abstract List<LotMap> GetLotMaps();
+
     public abstract void Sense();
 
     public abstract HashSet<KeyValuePair<string, object>> ReturnWorldData();

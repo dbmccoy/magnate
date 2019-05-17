@@ -28,8 +28,17 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
     {
         Entity = person.CurrentUnit.Entity;
 
-        if (devSensor.Priority != null) {
-            addEffect("develop" + devSensor.Priority.Name, true);
+        if(devSensor == null) {
+            devSensor = GetComponent<DeveloperSensor>();
+        }
+
+        try {
+            if (devSensor.Priority != null) {
+                addEffect("develop" + devSensor.Priority.Name, true);
+            }
+        }
+        catch {
+            Debug.Log(person.Name);
         }
 
         if(Project == null) {

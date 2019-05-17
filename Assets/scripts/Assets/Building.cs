@@ -24,9 +24,8 @@ public class Building : IBuilding {
     public float ValueToOwner { get; set; }
     public List<Tuple<Entity, Person, float, float>> Valuations { get; set; }
 
-    public Building(string name, Entity owner, Lot lot, int fls, int sqf, bool iscomplete = false)
+    public Building(Entity owner, int fls, int sqf, Lot lot = null, bool iscomplete = false)
     {
-        Name = name;
         OwningEntity = owner;
         Lot = lot;
         Floors = fls;
@@ -97,6 +96,13 @@ public class Building : IBuilding {
         foreach (var u in Uses) {
             //u.Assets.ForEach(x => OwningEntity.AcquireAsset(x));
         }
+    }
+}
+
+public static class BuildingCreator {
+    public static Building CreateBuilding(Entity owner, int fls, int sqf, Lot lot = null) {
+        Building b = new Building(owner, fls, sqf, lot);
+        return b;
     }
 }
 

@@ -14,6 +14,8 @@ public class Bootstrap : MonoBehaviour {
     Person Industrialist;
 
     public List<Neighborhood> Neighborhoods = new List<Neighborhood>();
+    public List<Lot> Lots = new List<Lot>();
+    public Lot Port;
 
     public Person NewPerson(string name)
     {
@@ -29,7 +31,12 @@ public class Bootstrap : MonoBehaviour {
         City = new Entity(name: "City");
         GameManager.Instance.city = City;
 
-        var Lots = GameObject.Find("Blocks").GetComponentsInChildren<Lot>().ToList();
+        Lots = GameManager.Instance.Lots; //GameObject.Find("Blocks").GetComponentsInChildren<Lot>().ToList();
+
+        //idk
+        Port = Lots[0];
+        Building portBuilding = new Building(City, 1, 100000, Port, true);
+        Port.Buildings.Add(portBuilding);
 
         var Blocks = GameObject.Find("Blocks").GetComponentsInChildren<Block>().ToList();
 

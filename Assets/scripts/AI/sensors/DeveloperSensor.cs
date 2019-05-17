@@ -16,6 +16,10 @@ public class DeveloperSensor : Sensor {
 
     public LotMap CostMap = new LotMap();
 
+    public override List<LotMap> GetLotMaps() {
+        return new List<LotMap>{ CostMap};
+    }
+
     DevelopAction devAct;
     CommissionProjectAction commishAct;
 
@@ -26,6 +30,9 @@ public class DeveloperSensor : Sensor {
         AssetBullitin.Instance.AddAssetToBullitinEvent.AddListener(OnAssetListingAdded);
         devAct = GetComponent<DevelopAction>();
         commishAct = GetComponent<CommissionProjectAction>();
+        CostMap.Name = "CostMap";
+
+        CalculateCostMap(); //tie this to an event
     }
 
     public Neighborhood Priority;
@@ -47,7 +54,13 @@ public class DeveloperSensor : Sensor {
 
     public void OnAssetListingAdded(AssetListing a) {
         if(a.Asset is Lot l) {
-            CostMap.Set(l, a.Price);
+           CostMap.Set(l, a.Price);
+        }
+    }
+
+    public void CalculateCostMap() {
+        foreach (var l in GameManager.Instance.Lots) {
+            LotEval(l);
         }
     }
 
@@ -62,6 +75,7 @@ public class DeveloperSensor : Sensor {
                 Priority = n;
             }
         }
+
         if(Priority != null) {
             person.AddGoal("develop" + Priority.Name, true);
 
@@ -89,7 +103,8 @@ public class DeveloperSensor : Sensor {
     }
 
     public void LotEval(Lot l) {
-
+        CostMap.Set(l,-10 * l.SquareFeet);
+        Debug.Log(-10 * l.SquareFeet);
     }
 
     public override float EvaluateAsset(IAsset asset) {

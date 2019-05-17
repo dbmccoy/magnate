@@ -13,6 +13,10 @@ public class HousingSensor : Sensor {
 
     }
 
+    public override List<LotMap> GetLotMaps() {
+        return null;
+    }
+
     public override HashSet<KeyValuePair<string, object>> ReturnWorldData() {
         var data = new HashSet<KeyValuePair<string, object>>();
 

@@ -13,6 +13,10 @@ public class RealEstateSensor : Sensor {
     public List<Unit> listedUnits = new List<Unit>();
     public List<Unit> rentedUnits = new List<Unit>();
 
+    public override List<LotMap> GetLotMaps() {
+        return null;
+    }
+
     public override void Sense()
     {
         myBuildings = new List<Building>();

@@ -28,6 +28,10 @@ public class DevelopAction : GoapAction {
 
         if(sensor == null) {
             sensor = GetComponent<DeveloperSensor>();
+            if(sensor == null) {
+                person.AddComponent<DeveloperSensor>();
+                sensor = GetComponent<DeveloperSensor>();
+            }
         }
         addEffect("hasProject", true);
         Entity = person.CurrentUnit.Entity;
@@ -37,11 +41,17 @@ public class DevelopAction : GoapAction {
             l.Add((Tuple<Use,float>)g.Value);
         }
 
-        if (Project == null && l.Count > 0) {
+        if (Project == null && l.Count > 0 && lot != null) {
             CreateProject(l);
         }
 
-        return true;
+        if(Project != null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+
 
         if (sensor.Priority != null) {
             //addEffect("develop" + sensor.Priority.Name, true);
@@ -70,14 +80,16 @@ public class DevelopAction : GoapAction {
         lot = l;
     }
 
+    //this functionality needs to be handled by sensors
+
     void CreateProject(List<Tuple<Use,float>> l) {
 
         if (lot == null) {
-            Debug.Log("couldn't find lot");
+            Debug.Log("develop action couldn't find lot");
             return;
         }
 
-        Building building = new Building(person.Name + UnityEngine.Random.Range(0, 1000).ToString(), Entity, lot, 2, 10);
+        Building building = new Building(Entity, 2, 10, lot);
 
         foreach(var use in Uses) {
             building.AddUse(use);
