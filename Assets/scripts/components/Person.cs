@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 [RequireComponent(typeof(GoapAgent))]
 public class Person : MonoBehaviour, IGoap, IProductive{
@@ -22,7 +23,7 @@ public class Person : MonoBehaviour, IGoap, IProductive{
     public bool isDummy;
 
     public Queue<Project> Projects = new Queue<Project>();
-    public Project PlanningProject;
+    public List<Project> PlanningProjects = new List<Project>();
     public List<HashSet<KeyValuePair<string, object>>> GoalQueue = new List<HashSet<KeyValuePair<string, object>>>();
     public void Awake()
     {
@@ -31,8 +32,9 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         CurrentEntity = Entity;
         Skills = new List<Skill>();
         agent = GetComponent<GoapAgent>();
-        
+
         GameManager.Instance.People.Add(this);
+
         SelfUnit = Entity.WorkUnits.First();
         AssignUnit(SelfUnit);
 
@@ -123,11 +125,14 @@ public class Person : MonoBehaviour, IGoap, IProductive{
 
     public void DayTick()
     {
-        CurrentGoal.Clear();
-        foreach (var goal in getGoals())
-        {
-            CurrentGoal.Add(GoapAgent.prettyPrint(goal));
+        if(CurrentGoal != null) {
+            CurrentGoal.Clear();
+
+            foreach (var goal in getGoals()) {
+                CurrentGoal.Add(GoapAgent.prettyPrint(goal));
+            }
         }
+        
         CurUnit = CurrentUnit.Entity.Name;
 
         if (CurrentUnit != null)
@@ -178,7 +183,8 @@ public class Person : MonoBehaviour, IGoap, IProductive{
     {
         Debug.Log(Name + " Adding Project " + p.Deliverable.Name);
         Project = p;
-        AddGoal(p.Entity.ID+"hasAsset", Project.Deliverable.Name);
+        AddGoal(p + "complete", true);
+        //AddGoal(p.Entity.ID+"hasAsset", Project.Deliverable.Name);
     }
 
     public void AddGoal(HashSet<KeyValuePair<string, object>> goal)
@@ -291,7 +297,18 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         }
         //Debug.Log(GoapAgent.prettyPrint(goal));
         // Debug.Log("<color=green>" + Name + ": Plan found</color> " + GoapAgent.prettyPrint(actions) + ": " + GoapAgent.prettyPrint(goal));
-        currentPlan = GoapAgent.prettyPrint(actions);
+        currentPlan = "";// GoapAgent.prettyPrint(actions);
+
+        foreach (var action in actions) {
+
+            string col = "<color=blue>";
+
+            if(action == GetAgent().CurrentAction()) {
+                col = "<color=green>";
+            }
+            currentPlan += col + GoapAgent.prettyPrint(action) + "</color>"+"\n";
+
+        }
     }
 
     public void actionsFinished()

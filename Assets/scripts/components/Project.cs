@@ -15,11 +15,19 @@ public class Project
     public HashSet<KeyValuePair<string, object>> prereqs = new HashSet<KeyValuePair<string, object>>();
     public HashSet<KeyValuePair<string, object>> effects = new HashSet<KeyValuePair<string, object>>();
 
+    public void addEffect(string s, object o) {
+        effects.Add(new KeyValuePair<string, object>(s,o));
+    }
+
     public Project(Entity entity, IProjectable deliverable, List<WorkReq> reqs, int num = 1)
     {
         Entity = entity;
         Deliverable = deliverable;
         Requirements = reqs;
+    }
+
+    public void ForceComplete() {
+        complete = true;
     }
 
     bool complete = false;

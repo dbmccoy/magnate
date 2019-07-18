@@ -42,16 +42,19 @@ public class LotMap : IEnumerable<LotMapPair>
     }
 
     public float Get(Lot l) {
-        try {
-            return Vals.IndexOf(Lots.IndexOf(l));
-        }
-        catch {
-            return 0f;
-        }
+        return Vals[Lots.IndexOf(l)];
     }
 
-    public void Sort() {
+    public void Sort(IOrderedEnumerable<LotMapPair> pairs) {
+        for (int i = 0; i < pairs.Count(); i++) {
+            var p = pairs.ElementAt(i);
+            Lots[i] = p.lot;
+            Vals[i] = p.val;
+        }
 
+        for (int i = 0; i < 5; i++) {
+            Debug.Log(Lots[i].Address + " = " + Vals[i]);
+        }
     }
 
     public Lot Min() {

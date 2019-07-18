@@ -33,9 +33,10 @@ public class ProjectSensor : Sensor {
     {
         //bid process goes where?
         if (CanDeliver(project)) {
+            Debug.Log(person.Name + ": I can deliver this");
             person.AddProject(project);
         }
-        else Debug.Log("fail");
+        else Debug.Log(person.Name + " fail");
     }
 
     public bool CanDeliver(Project project)
@@ -44,7 +45,14 @@ public class ProjectSensor : Sensor {
         person = GetComponent<Person>();
         var state = Agent.dataProvider.getWorldState();
         HashSet<KeyValuePair<string, object>> goal = new HashSet<KeyValuePair<string, object>>();
-        goal.Add(new KeyValuePair<string, object>(project.Entity.ID+"hasAsset", project.Deliverable.Name));
+        //goal.Add(new KeyValuePair<string, object>(project.Entity.ID+"hasAsset", project.Deliverable.Name));
+
+        goal.Add(new KeyValuePair<string, object>(project + "complete", true));
+
+       /* if (project.Deliverable is BuildingDesign bd) {
+            goal.Add(new KeyValuePair<string, object>(bd.lot + "hasDesign", true));
+        }*/
+        
 
         var dummy = new GameObject("dummy");
         var actions = Agent.GetComponents(typeof(GoapAction));

@@ -72,7 +72,7 @@ public class MouseHover : MonoBehaviour {
                 if (hit.transform != hover) {
                     
                 }
-                hover.GetComponent<Obj>().UnHighlight();
+                //hover.GetComponent<Obj>().UnHighlight();
                 hover = hit.transform;
                 hover.transform.GetComponent<Obj>().Highlight();
                 contextInfo.panel.SetActive(true);
@@ -123,10 +123,6 @@ public class MouseHover : MonoBehaviour {
 
             else {
                 contextInfo.panel.SetActive(false);
-                if (hover) {
-                    hover.GetComponent<Obj>().UnHighlight();
-                    hover = null;
-                }
             }
         }
 

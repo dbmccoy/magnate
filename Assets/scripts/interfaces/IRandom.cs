@@ -20,6 +20,7 @@ public interface ICondition
 public interface IProjectable
 {
     string Name { get; set; }
+    Entity OwningEntity { get; set; }
     Project CreateProject();
     void Complete();
 }

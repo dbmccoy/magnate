@@ -15,9 +15,11 @@ public class DeveloperSensor : Sensor {
     public List<float> LotAcquisitionCost = new List<float>();
 
     public LotMap CostMap = new LotMap();
+    public LotMap ConstCostMap = new LotMap();
+    public LotMap DesireMap = new LotMap();
 
     public override List<LotMap> GetLotMaps() {
-        return new List<LotMap>{ CostMap};
+        return new List<LotMap>{ CostMap,DesireMap };
     }
 
     DevelopAction devAct;
@@ -31,6 +33,13 @@ public class DeveloperSensor : Sensor {
         devAct = GetComponent<DevelopAction>();
         commishAct = GetComponent<CommissionProjectAction>();
         CostMap.Name = "CostMap";
+        DesireMap.Name = "DesireMap";
+        ConstCostMap.Name = "ConstCostMap";
+        Entity = person.CurrentEntity;
+
+        foreach (var l in GameManager.Instance.Lots) {
+            l.OnLotUpdate.AddListener(LotEval);
+        }
 
         CalculateCostMap(); //tie this to an event
     }
@@ -62,7 +71,18 @@ public class DeveloperSensor : Sensor {
         foreach (var l in GameManager.Instance.Lots) {
             LotEval(l);
         }
+
+        
+
+        foreach (var item in DesireMap) {
+            //Debug.Log(item.val);
+        }
     }
+
+    private Project currentProject;
+
+    UseReqs currentReqs;
+    bool updatedLots;
 
     public override void Sense() {
         Neighborhoods = GameManager.Instance.GetComponent<Bootstrap>().Neighborhoods;
@@ -76,11 +96,30 @@ public class DeveloperSensor : Sensor {
             }
         }
 
-        if(Priority != null) {
-            person.AddGoal("develop" + Priority.Name, true);
+        if(currentReqs != null) {
+            bool inProgress = false;
+            foreach (var g in person.FindGoals("developUseSqft")) {
+                if(g.Value == currentReqs) {
+                    inProgress = true;
+                }
+            }
 
-            var l = AvailableLots.Where(x => x.Buildings.Count == 0).ToList().OrderBy(x => LotAcquisitionCost[AvailableLots.IndexOf(x)]).FirstOrDefault();
+            if (!inProgress) {
+                Debug.Log("reset");
+                currentReqs = null;
+            }
+        }
 
+        if(currentReqs == null) {
+            CalculateCostMap();
+            currentReqs = new UseReqs(Use.Residential, DesireMap, 1000);
+            person.AddGoal("developUseSqft", currentReqs);
+
+        }
+
+        if (updatedLots) {
+            DesireMap.Sort(DesireMap.OrderByDescending(x => x.val));
+            updatedLots = false;
         }
     }
 
@@ -88,7 +127,7 @@ public class DeveloperSensor : Sensor {
         var data = new HashSet<KeyValuePair<string, object>>();
 
         foreach(Lot l in AvailableLots) {
-            data.Add(l.Address + "isBuildable", l.Buildings.Count == 0);
+            data.Add(l.Address + "isBuildable", l.Building == null);
         }
 
         return data;
@@ -102,12 +141,58 @@ public class DeveloperSensor : Sensor {
         NHoodPriority[n] = NHoodCurrentEval[n] + NHoodEvalChange[n];
     }
 
+    float coef_sqft = .1f;
+    float coef_port_dist = -100f;
+    float coef_cost = -1f;
+
+
+
     public void LotEval(Lot l) {
-        CostMap.Set(l,-10 * l.SquareFeet);
-        Debug.Log(-10 * l.SquareFeet);
+
+
+        float c = UnityEngine.Random.Range(500, 1000);
+        if (l.Building == null) {
+            c += 0f;
+        }
+        else {
+            c += 10000f; //demolition costs
+        }
+
+        CostMap.Set(l,c);
+
+        float v = (l.SquareFeet * coef_sqft) + (l.DistanceTo(GameManager.Instance.GetComponent<Bootstrap>().Capitol) * coef_port_dist) + (CostMap.Get(l) * coef_cost);
+
+        DesireMap.Set(l, v);
+
+        //Debug.Log(v);
+
+        updatedLots = true;
+    }
+
+    public int ConstructCost(Lot l) {
+
+        if(currentReqs == null) {
+            return 0;
+        }
+        int max = (int)l.BuildableSquareFeet();
+        int avail = max - l.Building.SquareFeet;
+
+        return (max / avail) * (currentReqs.sqft * 10);
     }
 
     public override float EvaluateAsset(IAsset asset) {
         return 0f;
+    }
+}
+
+public class UseReqs {
+    public Use use;
+    public LotMap map;
+    public int sqft;
+
+    public UseReqs(Use u, LotMap l, int s) {
+        use = u;
+        map = l;
+        sqft = s;
     }
 }

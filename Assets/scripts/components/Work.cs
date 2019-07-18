@@ -8,6 +8,7 @@ public enum SkillType {
     BldFraming,
     BldFinishing,
     BldMaintenance,
+    BldDesign,
 
     FinLoaning,
 

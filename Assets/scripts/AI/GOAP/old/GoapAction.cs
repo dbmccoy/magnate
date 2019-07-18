@@ -27,6 +27,12 @@ public abstract class GoapAction : MonoBehaviour {
         return cost;
     }
 
+    public bool isReusable;
+
+    public virtual void addToPlan() {
+
+    }
+
     //public static HashSet<Skill> SkillReqs = new HashSet<Skill>{};
 
     //end david defined
@@ -93,6 +99,10 @@ public abstract class GoapAction : MonoBehaviour {
 	public void addPrecondition(string key, object value) {
 		preconditions.Add (new KeyValuePair<string, object>(key, value) );
 	}
+
+    public void addPrecondition(KeyValuePair<string, object> kvp) {
+        preconditions.Add(kvp);
+    }
 
 
 	public void removePrecondition(string key) {

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.SymbolStore;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.Events;
 
 public class Lot : MonoBehaviour, IAsset {
 
@@ -16,7 +17,11 @@ public class Lot : MonoBehaviour, IAsset {
     public string Class { get; set; }
     public float ValueToOwner { get; set; }
 
-    public List<Building> Buildings = new List<Building>();
+    public BuildingDesign Design;
+
+    public Building Building = null;
+
+    public List<Tuple<Use, float>> Uses = new List<Tuple<Use, float>>();
     
     float lastSalePrice;
     public float LastSalePrice {
@@ -33,14 +38,20 @@ public class Lot : MonoBehaviour, IAsset {
         Neighborhood = n;
     }
 
+    public void SetDesign(BuildingDesign d) {
+        Design = d;
+    }
+
     public bool CanBuild(Building b) {
         //TODO: make this handle additions and multi building lots
 
-        if (Buildings.Count == 0) {
+        if (Building == null) {
             return true;
         }
         else return false;
     }
+
+    public LotUpdateEvent OnLotUpdate = new LotUpdateEvent();
 
     public float GetValue()
     {
@@ -69,10 +80,30 @@ public class Lot : MonoBehaviour, IAsset {
         }
         OwningEntity = to;
         OwningEntity.AcquireAsset(this);
-        foreach (var b in Buildings) {
-            OwningEntity.AcquireAsset(b);
-        }
+        OwningEntity.AcquireAsset(Building);
     }
+
+    //UI*UI*UI*UI
+
+    private string contextPrint;
+
+    public void SetContextPrint(string s) {
+        contextPrint = s;
+    }
+
+    public void ResetContextPrint() {
+        contextPrint = Address;
+    }
+
+    public string ContextPrint() {
+        if(contextPrint == "") {
+            contextPrint = Address;
+        }
+        return contextPrint;
+    }
+
+    //UI*UI*UI*UI
+
 
     public Road road;
     public Block block;
@@ -414,4 +445,8 @@ public class Edge
     {
         return (start() + end()) / 2;
     }
+}
+
+public class LotUpdateEvent : UnityEvent<Lot> {
+
 }

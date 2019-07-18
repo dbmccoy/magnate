@@ -81,12 +81,12 @@ public class GameManager : MonoBehaviour
         GoalDebug.text = "";
         //switch to UI manager or something
         foreach (var person in People) {
-            try {
-                var deletethis = person.name != null;
-            }
-            catch {
+
+            if (person.isDummy) {
                 People.Remove(person);
+                return;
             }
+
             var t = "";
 
             foreach (var item in person.GoalQueue) {
@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour
                 t = "Idle";
             }
 
-            GoalDebug.text = GoalDebug.text +"\n"+ person.name + ": \n   <color=blue>" + person.GetPlan() + "</color>" + "\n" + t;
+            GoalDebug.text = GoalDebug.text +"\n"+ person.name + ": \n" + person.GetPlan() + "\n" + t;
 
         }
         /*
@@ -139,7 +139,6 @@ public class GameManager : MonoBehaviour
     public void DayTick()
     {
         DayTickEvent.Invoke();
-        LotMapSyncEvent.Invoke();
 
         Day++;
         DaysSinceStart++;
@@ -150,6 +149,7 @@ public class GameManager : MonoBehaviour
     public void MonthTick()
     {
         MonthTickEvent.Invoke();
+        LotMapSyncEvent.Invoke();
 
         Day = 1;
         Month++;

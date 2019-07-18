@@ -10,7 +10,6 @@ public class SellAssetAction : GoapAction
     private Person person;
     public IAsset Asset { get; private set; }
     public Entity Entity;
-    public AssetListing Listing;
 
     public SellActionEvent OnSellAsset = new SellActionEvent();
 
@@ -30,33 +29,37 @@ public class SellAssetAction : GoapAction
         ToSell = a.Name;
     }
 
+    AssetBid bid;
+
     public override bool checkProceduralPrecondition(GameObject agent) {
 
         Entity = person.CurrentEntity;
 
 
-        if (Asset == null) {
+        if (listings.Count == 0 || bids.Count == 0) {
             //Debug.Log("asset is null");
             return false;
         }
 
+        bid = bids.First();
+
+        if (bids.First().GetInterest(Entity) > 0) {
+        }
+
         //TODO: make this faster
-        addEffect("sellAsset", Asset);
-        addEffect("divestAssetClass", Asset.Class); //necessary?
-        
+        foreach (IAsset a in bid.Self(Entity).Item2) {
+            addEffect("sellAsset", a);
+        }
+        foreach (IAsset a in bid.Other(Entity).Item2) {
+            addEffect("hasAsset", a);
+        }
+
         return true;
     }
 
     public override bool isDone() {
         if (complete) {
             Debug.Log("completed the deal");
-            bids.Clear();
-            bidVals.Clear();
-            person.RemoveGoal("sellAsset", Asset);
-            OnSellAsset.Invoke(Asset);
-            Asset = null;
-            ToSell = "n/a";
-            Listing = null;
             inProgress = false;
             complete = false;
             return true;
@@ -66,12 +69,25 @@ public class SellAssetAction : GoapAction
 
     bool inProgress = false;
     bool complete = false;
+    public List<AssetListing> listings = new List<AssetListing>();
+
     List<AssetBid> bids = new List<AssetBid>();
     List<float> bidVals = new List<float>();
+
+    public void AddListing(AssetListing l) {
+        listings.Add(l);
+    }
+
+    public void RemoveListing(AssetListing l) {
+        listings.Remove(l);
+    }
 
     public void AddBid(AssetBid b) {
         bids.Add(b);
         bidVals.Add(EvalBid(b));
+
+        bids.OrderBy(x => x.GetInterest(Entity) > 0);
+        //how discard old bids?
     }
 
     public void RemoveBid(AssetBid b) {
@@ -90,23 +106,15 @@ public class SellAssetAction : GoapAction
     }
 
     public override bool perform(GameObject agent) {
-        if(inProgress == false) {
-            Listing = new AssetListing(Asset, person, Asset.ValueToOwner);
-            Debug.Log("adding " + Asset.Name + "for " + Asset.ValueToOwner);
-            AssetBullitin.Instance.Add(Listing);
-            inProgress = true;
-        }
-        
-        if(bidVals.Count > 0) {
 
-            if (bidVals.Max() >= Asset.ValueToOwner) {
-                bids[bidVals.IndexOf(bidVals.Max())].Accept(Entity);
-                AssetBullitin.Instance.Remove(Listing);
-                Debug.Log("accepting");
-                complete = true;
-            }
-            else {
-            }
+        bid.Accept(Entity);
+
+        if (bid.isAccepted) {
+            //Debug.Log("accepting");
+            complete = true;
+            RemoveBid(bid);
+            bid = null;
+
         }
 
         return true;

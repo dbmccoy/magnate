@@ -12,6 +12,7 @@ public class AssetBullitin
 
     public void Add(AssetListing asset) {
         Available.Add(asset);
+        //Debug.Log("adding " + asset.Asset.Name + " to bullitin for " + asset.Price);
         AddAssetToBullitinEvent.Invoke(asset);
     }
 
@@ -19,8 +20,14 @@ public class AssetBullitin
         Available.Remove(asset);
     }
 
-    public AssetListing Search(IAsset asset) {
-        return Available.Where(x => x.Asset == asset).First();
+    public AssetListing Query(IAsset asset) {
+        //tell owner his asset has been queried
+
+        return Available.Where(x => x.Asset == asset).FirstOrDefault();
+    }
+
+    public List<AssetListing> MyListings(Entity e) {
+        return Available.Where(x => x.OwnedBy == e).ToList();
     }
 
     // Start is called before the first frame update

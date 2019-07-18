@@ -11,7 +11,7 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
     public Entity Entity { get; set; }
     public WorkUnit WorkUnit { get; set; }
 
-    public Project Project { get; set; }
+    public Project tempProject { get; set; }
     [SerializeField]
     public Building building;
 
@@ -26,6 +26,7 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
     {
         person = GetComponent<Person>();
         Agent = GetComponent<GoapAgent>();
+
     }
 
     public override void reset()
@@ -45,11 +46,11 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
 
     public override bool isDone()
     {
-        var c = Project.isComplete();
+        var c = tempProject.isComplete();
         if (c) {
-            person.RemoveGoal(Project.Entity.ID + "hasAsset", Project.Deliverable.Name);
+            person.RemoveGoal(tempProject.Entity.ID + "hasAsset", tempProject.Deliverable.Name);
             person.Project = null;
-            Project = null;
+            tempProject = null;
             inProgress = false;
         }
         return c;
@@ -61,14 +62,17 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
 
         if (person.Project != null && person.Project.Deliverable is Building b)
         {
-            Project = person.Project;
-            var OwnerEntity = Project.Entity;
+            tempProject = person.Project;
+            var OwnerEntity = tempProject.Entity;
 
             building = b;
-            Debug.Log(b.Name + " PRECOND");
 
-            addPrecondition("meetsWorkReqs", Project);
+            //addPrecondition("hasBldDesign", true);
+            addPrecondition("meetsWorkReqs", tempProject);
             addEffect(OwnerEntity.ID+"hasAsset", b.Name);
+            //addEffect(b.Lot + "hasBuilding", b.Design);
+            addEffect(tempProject + "complete", true);
+
             ok = true;
         }
 
@@ -85,7 +89,7 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
 
             Debug.Log(building.Name + " BEGIN");
             building.StartConstruction();
-            person.CurrentUnit.AddProject(Project);
+            person.CurrentUnit.AddProject(tempProject);
         }
 
         return true;
@@ -96,5 +100,4 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
         return false;
     }
 }
-
 

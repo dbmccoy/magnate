@@ -15,6 +15,7 @@ public class BuyAssetAction : GoapAction
     public AssetListing Target;
     AssetBid bid;
     List<AssetListing> applied = new List<AssetListing>();
+    List<AssetListing> blacklist = new List<AssetListing>();
 
     public BuyAssetAction() {
     }
@@ -27,36 +28,41 @@ public class BuyAssetAction : GoapAction
     public override bool checkProceduralPrecondition(GameObject agent) {
         done = false;
 
-        
-        
-        if(Target == null) {
+
+        if (Target == null && person.GetAgent().Goal != null) 
+        {
             
             foreach(var a in person.GetAgent().availableActions) {
-                foreach(var c in a.Preconditions) {
+
+                foreach (var c in a.Preconditions) {
+                    //Debug.Log(GoapAgent.prettyPrint(person.GetAgent().Goal) + " has pc " + c.Key + ":" + c.Value.ToString());
+
                     if (c.Key.Contains("hasAsset")) {
 
-                        var v = AssetBullitin.Instance.Available.Where(x => x.Asset == c.Value);
+                        Target = AssetBullitin.Instance.Query((IAsset)c.Value);
+                        
+                    }
 
-                        Target = v.FirstOrDefault();
-
-                        if(Target != null) {
-                            //Debug.Log(a.GetType().ToString() + " " + c.Key + " adding " + Target.Asset.Name);
-                            addEffect(c.Key, c.Value);
-                            break;
-                        }
+                    if (Target != null) {
+                        //Debug.Log(GoapAgent.prettyPrint(person.GetAgent().Goal) + a.GetType().ToString() + " " + c.Key + " adding " + Target.Asset.Name);
+                        addEffect(c.Key, c.Value);
+                        break;
                     }
                 }
             }
 
+
             if(Target == null) {
                 return false;
             }
+
+            addEffect(person.CurrentEntity.ID + "hasAsset", Target.Asset);
+
         }
         else {
-            Debug.Log(Target.Asset.Name);
+            //Debug.Log(Target.Asset.Name);
         }
 
-        addEffect(person.CurrentEntity.ID+"hasAsset", Target.Asset);
         return true;
 
         //TODO: has enough money
@@ -65,7 +71,7 @@ public class BuyAssetAction : GoapAction
 
     public override bool isDone() {
         if(bid != null && bid.isAccepted) {
-            Debug.Log("bought a thing " + Target.Asset.Name);
+            //Debug.Log("bought a thing " + Target.Asset.Name);
 
             Target = null;
             bid = null;
@@ -127,6 +133,28 @@ public class AssetBid {
     Tuple<Entity, List<IAsset>, float> party1;
     Tuple<Entity, List<IAsset>, float> party2;
 
+    float p1interest;
+    float p2interest;
+
+    public void SetInterest(Entity p, float v) {
+        if(p == party1.Item1) {
+            p1interest = v;
+        }
+        if (p == party2.Item1) {
+            p2interest = v;
+        }
+    }
+
+    public float GetInterest(Entity p) {
+        if (p == party1.Item1) {
+            return p1interest;
+        }
+        if (p == party2.Item1) {
+            return p2interest;
+        }
+        else return 0f;
+    }
+
     public Tuple<Entity, List<IAsset>, float> Other(Entity p) {
         if (p == party1.Item1) return party2;
         else return party1;
@@ -159,7 +187,6 @@ public class AssetBid {
 
         if(party1accepts && party2accepts) {
 
-            Debug.Log("acceptance");
             //escrow??
             isAccepted = true;
 
@@ -170,7 +197,7 @@ public class AssetBid {
 
             foreach(var x in party2.Item2) {
 
-                Debug.Log(party1.Item1.Name);
+                //Debug.Log(party1.Item1.Name + " gets " + x.Name);
                 x.Transfer(party1.Item1);
 
             }

@@ -5,8 +5,13 @@ using UnityEngine;
 public class Obj : MonoBehaviour {
 
     private Color col;
+    private Material mat;
+
     public MeshFilter Filter { get; private set; }
     public MeshRenderer Render { get; private set; }
+
+    private bool isHighlight;
+    private bool wasHighlightThisFrame;
 
     public virtual void Start()
     {
@@ -14,14 +19,26 @@ public class Obj : MonoBehaviour {
         Render = GetComponent<MeshRenderer>();
     }
 
-	// Use this for initialization
-	public virtual void Highlight () {
-        if (col != Color.green) col = GetComponent<MeshRenderer>().material.color;
-        Render = GetComponent<MeshRenderer>();
-        Render.material.color = Color.green;
-	}
+    public void LateUpdate() {
+        if (isHighlight && wasHighlightThisFrame == false) {
+            UnHighlight(); 
+        }
+        wasHighlightThisFrame = false;
+    }
+
+    // Use this for initialization
+    public virtual void Highlight () {
+        wasHighlightThisFrame = true;
+        if (!isHighlight) {
+            Render = GetComponent<MeshRenderer>();
+            col = Render.material.color;
+            Render.material.color = Color.green;
+            isHighlight = true;
+        }
+    }
 
     public virtual void UnHighlight() {
-        if(Render)Render.material.color = col;
+        isHighlight = false;
+        Render.material.color = col;
     }
 }

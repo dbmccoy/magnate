@@ -12,16 +12,19 @@ public class Bootstrap : MonoBehaviour {
     Person Developer;
     Person Builder;
     Person Industrialist;
+    Person Architect;
 
     public List<Neighborhood> Neighborhoods = new List<Neighborhood>();
     public List<Lot> Lots = new List<Lot>();
     public Lot Port;
+    public Lot Capitol;
 
     public Person NewPerson(string name)
     {
         var po = Instantiate(Resources.Load("Person")) as GameObject;
         Person np = po.GetComponent<Person>();
         np.Name = name;
+        np.Entity.Name = name + "(E)";
         po.name = name;
         return np;
     }
@@ -35,8 +38,12 @@ public class Bootstrap : MonoBehaviour {
 
         //idk
         Port = Lots[0];
-        Building portBuilding = new Building(City, 1, 100000, Port, true);
-        Port.Buildings.Add(portBuilding);
+
+        var d = new BuildingDesign(City, Use.Industrial, 300000, Port);
+        Building portBuilding = d.GetBuilding();
+        Port.Building = portBuilding;
+
+        Capitol = Lots.Last();
 
         var Blocks = GameObject.Find("Blocks").GetComponentsInChildren<Block>().ToList();
 
@@ -52,11 +59,21 @@ public class Bootstrap : MonoBehaviour {
         Mayor.AddComponent<CityGovSensor>();
         Mayor.Job = new Job(City, City.WorkUnits[0], Mayor.Skills, Mayor);
 
+        /*
         Industrialist = NewPerson("Industrialist");
         Industrialist.AddComponent<IndustrySensor>();
         Industrialist.Job = new Job(Industrialist.Entity, Industrialist.CurrentUnit, Industrialist.Skills, Industrialist);
         Industrialist.AddComponent<CommissionProjectAction>();
         Industrialist.AddComponent<DevelopAction>();
+        */
+
+        Architect = NewPerson("Architect");
+        Architect.AddComponent<ProjectSensor>();
+        Architect.AddComponent<DesignAction>();
+        Architect.Job = new Job(Architect.Entity, Architect.CurrentUnit, Architect.Skills, Architect);
+
+        Architect.AddSkill(SkillType.BldDesign, 10f);
+
 
         Lots.ForEach(x => City.AcquireAsset(x));
 
@@ -121,7 +138,7 @@ public class Bootstrap : MonoBehaviour {
 
 public interface IProjectAction
 {
-    Project Project { get; set; }
+    Project tempProject { get; set; }
 
 }
 

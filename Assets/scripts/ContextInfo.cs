@@ -28,7 +28,7 @@ public class ContextInfo : MonoBehaviour {
     }
 
     public void PrintLot(Lot lot) {
-        _text.text = lot.Address;
+        _text.text = lot.ContextPrint();
     }
 
     public void PrintNode(Node node) {

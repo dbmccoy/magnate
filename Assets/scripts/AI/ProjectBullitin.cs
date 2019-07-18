@@ -12,6 +12,7 @@ public class ProjectBullitin
 
     public void Add(Project listing)
     {
+        Debug.Log("add " + listing + " " + listing.Deliverable.Name);
         Available.Add(listing);
         AddProjectToBullitinEvent.Invoke(listing);
     }

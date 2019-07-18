@@ -49,6 +49,10 @@ public sealed class GoapAgent : MonoBehaviour {
 
     }
 
+    private GoapAction currAct;
+    public GoapAction CurrentAction() {
+        return currAct;
+    }
 
 	public void addAction(GoapAction a) {
 		availableActions.Add (a);
@@ -190,6 +194,7 @@ public sealed class GoapAgent : MonoBehaviour {
             currentActions = NextPlan();
 
 			GoapAction action = currentActions.Peek();
+            currAct = action;
 			if ( action.isDone() ) {
                 // the action is done. Remove it so we can perform the next one
 				currentActions.Dequeue();
@@ -245,6 +250,14 @@ public sealed class GoapAgent : MonoBehaviour {
 		//Debug.Log("Found actions: "+prettyPrint(actions));
 	}
 
+    private List<GoapAction> tempActions = new List<GoapAction>();
+
+    public GoapAction addTempCommissionProjectAction() {
+        var a = gameObject.AddComponent<CommissionProjectAction>();
+        tempActions.Add(a);
+        return a;
+    }
+
 	public static string prettyPrint(HashSet<KeyValuePair<string,object>> state) {
 		String s = "";
 		foreach (KeyValuePair<string,object> kvp in state) {
@@ -258,6 +271,9 @@ public sealed class GoapAgent : MonoBehaviour {
 		String s = "";
 		foreach (GoapAction a in actions) {
 			s += a.GetType().Name;
+            if(a is CommissionProjectAction c) {
+                s += c.tempProject.Deliverable.Name;
+            }
 			s += "-> ";
 		}
 		s += "GOAL";

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class CommissionProjectAction : GoapAction, IProjectAction {
 
@@ -10,80 +11,109 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
     public Entity Entity { get; set; }
     public WorkUnit WorkUnit { get; set; }
 
-    DeveloperSensor devSensor;
-
     public void Awake()
     {
         person = GetComponent<Person>();
         WorkUnit = person.CurrentUnit; //TODO: fix
         Agent = GetComponent<GoapAgent>();
-        devSensor = GetComponent<DeveloperSensor>();
-
-        addPrecondition("hasProject", true);
+        isReusable = true;
     }
 
-    public Project Project { get; set; }
+    public int loop = 0;
 
-    public override bool checkProceduralPrecondition(GameObject agent)
-    {
+    private List<Project> queuedProjects = new List<Project>();
+    private List<Project> plannedProjects = new List<Project>();
+
+    public Project tempProject { get; set; }
+
+    public override bool checkProceduralPrecondition(GameObject agent) {
+        Preconditions.Clear();
+        Effects.Clear();
+
+        if (loop >= queuedProjects.Count) {
+            return false;
+        }
+
+        //Debug.Log("cp " + loop + " " + queuedProjects.Count);
+
         Entity = person.CurrentUnit.Entity;
 
-        if(devSensor == null) {
-            devSensor = GetComponent<DeveloperSensor>();
-        }
-
-        try {
-            if (devSensor.Priority != null) {
-                addEffect("develop" + devSensor.Priority.Name, true);
-            }
-        }
-        catch {
-            Debug.Log(person.Name);
-        }
-
-        if(Project == null) {
-            Project = person.PlanningProject;
-        }
-
-        if(Project != null) {
-            foreach (var i in Project.prereqs) {
+        tempProject = queuedProjects.Random();//[loop];//.Where(x => !blacklist.Contains(x)).FirstOrDefault();
+            //person.PlanningProjects.Where(x => !queuedProjects.Contains(x)).ToList().Random();
+    
+        if(tempProject != null) {
+            //Debug.Log("it me");
+            foreach (var i in tempProject.prereqs) {
+                //Debug.Log("adding pre " + i.Key + ":" + i.Value.ToString());
                 addPrecondition(i.Key, i.Value);
-                //Debug.Log("adding precond " + i.Key + ":" + i.Value.ToString());
+            }
+            foreach (var e in tempProject.effects) {
+                addEffect(e.Key, e.Value);
+                //Debug.Log(tempProject.Deliverable.Name + " adding eff " + e.Key + ":" + e.Value.ToString());
             }
             return true;
         }
         return false;
+    }
 
-        if (person.Project != null)
-        {
-            
-            //addEffect(Entity.ID+"hasAsset", Project.Deliverable);
-            return true;
+    public void NextProject() {
+        loop++;
+
+        if (loop >= queuedProjects.Count) {
+            //loop = 0;
         }
     }
 
+    public override void addToPlan() {
+        Preconditions.Clear();
+        Effects.Clear();
+
+        if (!plannedProjects.Contains(tempProject)) {
+            plannedProjects.Add(tempProject);
+        }
+
+        checkProceduralPrecondition(person.gameObject);
+    }
+
+    Project project;
+
     public override bool isDone()
     {
-        if(Project == null || Project.Deliverable == null) {
+        if(project == null || project.Deliverable == null) {
             return false;
         }
-        var done = Entity.Assets.Contains(Project.Deliverable as IAsset);
+        var done = project.isComplete();
         if (done) {
-            person.RemoveGoal(Entity.ID + "hasAsset", Project.Deliverable.Name);
-            Debug.Log("taking possession of " + Project.Deliverable.Name);
-            person.Project = null;
-            person.PlanningProject = null;
-
-            //reset added preconditions
-            foreach (var i in Project.prereqs) {
-                removePrecondition(i.Key);
-                Debug.Log("Removing precond " + i.Key + " " + i.Value);
+            foreach (var e in project.effects) {
+                addEffect(e.Key,e.Value);
+                Debug.Log("PROJ COMPLETE: " + project.Deliverable.Name + " " + e.Key.ToString() + " : " + e.Value.ToString());
             }
 
-            Project = null;
+            //person.RemoveGoal(Entity.ID + "hasAsset", project.Deliverable.Name);
+            person.PlanningProjects.Remove(project);
+            queuedProjects.Remove(project);
+            plannedProjects.Remove(project);
+            tempProject = null;
+            project = null;
+
+            Preconditions.Clear();
+            Effects.Clear();
+
             isPosted = false;
         }
         return done;
+    }
+
+    public int ProjQueueLength() {
+        return queuedProjects.Count;
+    }
+
+    public void ClearProjectQueue() {
+        queuedProjects.Clear();
+    }
+
+    public void EnqueueProject(Project p) {
+        queuedProjects.Add(p);
     }
 
     bool isPosted = false;
@@ -92,10 +122,23 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
     {
         if (!isPosted)
         {
-            Project = person.Project;
-            isPosted = true;
-            ProjectBullitin.Instance.Add(Project);
-            Debug.Log("added project to bull");
+            project = plannedProjects.FirstOrDefault();
+
+            for (int i = 0; i < plannedProjects.Count; i++) {
+                Debug.Log(i + " " + plannedProjects[i].Deliverable.Name);
+            }
+
+            if (project != null) {
+                isPosted = true;
+
+                foreach (var e in project.effects) {
+                    addEffect(e.Key, e.Value);
+                    Debug.Log(project.Deliverable.Name + " " + e.Key.ToString() + " : " + e.Value.ToString());
+                }
+
+                ProjectBullitin.Instance.Add(project);
+            }
+            
         }
         return true;
     }
@@ -107,6 +150,10 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
 
     public override void reset()
     {
+
+        loop = 0;
+        //Preconditions.Clear();
+        //Effects.Clear();
         //removeEffect("hasAsset");
         //Project = null;
     }       

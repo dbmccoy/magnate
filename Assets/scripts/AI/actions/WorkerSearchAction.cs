@@ -11,7 +11,7 @@ public class WorkerSearchAction : GoapAction, IProjectAction
     public Entity Entity { get; set; }
     public WorkUnit WorkUnit { get; set; }
 
-    public Project Project { get; set; }
+    public Project tempProject { get; set; }
     private List<Job> OpenJobs = new List<Job>();
     private List<Person> Applicants = new List<Person>();
     private Dictionary<Job, List<Person>> JobApplications = new Dictionary<Job, List<Person>>();
@@ -25,15 +25,15 @@ public class WorkerSearchAction : GoapAction, IProjectAction
 
     public override bool checkProceduralPrecondition(GameObject agent)
     {
-        Project = person.Project;
-        addEffect("meetsWorkReqs", Project);
+        tempProject = person.Project;
+        addEffect("meetsWorkReqs", tempProject);
         return true; //WorkUnit.Manager == person;
     }
 
     public override bool isDone()
     {
         var missingSkills = new List<Skill>();
-        foreach (var workReq in Project.Requirements)
+        foreach (var workReq in tempProject.Requirements)
         {
             bool match = false;
             foreach (var skill in WorkUnit.Skills)
@@ -59,7 +59,7 @@ public class WorkerSearchAction : GoapAction, IProjectAction
     public override bool perform(GameObject agent)
     {
         var missingSkills = new List<Skill>();
-        foreach (var workReq in Project.Requirements)
+        foreach (var workReq in tempProject.Requirements)
         {
             bool match = false;
             foreach (var skill in WorkUnit.Skills)

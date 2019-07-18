@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 /**
  * Plans what actions can be completed in order to fulfill a goal state.
@@ -18,6 +19,7 @@ public class GoapPlanner
 	                              HashSet<KeyValuePair<string,object>> worldState, 
 	                              HashSet<KeyValuePair<string,object>> goal) 
 	{
+
         if(goal.Count == 0)
         {
             Debug.Log("no goal, aborting plan");
@@ -32,9 +34,14 @@ public class GoapPlanner
 		// check what actions can run using their checkProceduralPrecondition
 		HashSet<GoapAction> usableActions = new HashSet<GoapAction> ();
 		foreach (GoapAction a in availableActions) {
-			if ( a.checkProceduralPrecondition(agent) )
-				usableActions.Add(a);
-		}
+			if ( a.checkProceduralPrecondition(agent)) {
+                usableActions.Add(a);
+                
+            }
+            else {
+                
+            }
+        }
 		
 		// we now have all actions that can run, stored in usableActions
 
@@ -46,8 +53,11 @@ public class GoapPlanner
 		bool success = buildGraph(start, leaves, usableActions, goal);
 
 		if (!success) {
-			// oh no, we didn't get a plan
-			//Debug.Log(agent.GetComponent<Person>().name + " NO PLAN " + GoapAgent.prettyPrint(goal));
+            // oh no, we didn't get a plan
+            if (agent.GetComponent<Person>().Name == "Richie") {
+                //Debug.Log(agent.GetComponent<Person>().name + " NO PLAN " + GoapAgent.prettyPrint(goal));
+            }
+			
 			return null;
 		}
 
@@ -75,6 +85,7 @@ public class GoapPlanner
 
 		Queue<GoapAction> queue = new Queue<GoapAction> ();
 		foreach (GoapAction a in result) {
+            //Debug.Log(a.ToString());
 			queue.Enqueue(a);
 		}
 
@@ -83,35 +94,66 @@ public class GoapPlanner
 		return queue;
 	}
 
-	/**
+    /**
 	 * Returns true if at least one solution was found.
 	 * The possible paths are stored in the leaves list. Each leaf has a
 	 * 'runningCost' value where the lowest cost will be the best action
 	 * sequence.
 	 */
-	private bool buildGraph (Node parent, List<Node> leaves, HashSet<GoapAction> usableActions, HashSet<KeyValuePair<string, object>> goal)
+    int loops = 0;
+
+
+    private bool buildGraph (Node parent, List<Node> leaves, HashSet<GoapAction> usableActions, HashSet<KeyValuePair<string, object>> goal, GoapAgent agent = null)
 	{
 		bool foundOne = false;
+        string planID = UnityEngine.Random.Range(0, 100).ToString();
 
-		// go through each action available at this node and see if we can use it here
-		foreach (GoapAction action in usableActions) {
 
-			// if the parent state has the conditions for this action's preconditions, we can use it here
-			if ( inState(action.Preconditions, parent.state) ) {
+        // go through each action available at this node and see if we can use it here
+
+        foreach (GoapAction action in usableActions) {
+
+            // if the parent state has the conditions for this action's preconditions, we can use it here
+            if ( inState(action.Preconditions, parent.state) ) {
 
 				// apply the action's effects to the parent state
 				HashSet<KeyValuePair<string,object>> currentState = populateState (parent.state, action.Effects);
-				//Debug.Log(GoapAgent.prettyPrint(currentState));
-				Node node = new Node(parent, parent.runningCost+action.cost, currentState, action);
+
+                Node node = new Node(parent, parent.runningCost+action.cost, currentState, action);
+
+                foreach (var kvp in action.Preconditions) {
+                    Debug.Log(GoapAgent.prettyPrint(action) + " " + kvp.Key + " : " + kvp.Value);
+                }
+
+                action.addToPlan();
 
 				if (inState(goal, currentState)) {
 					// we found a solution!
 					leaves.Add(node);
 					foundOne = true;
 				} else {
-					// not at a solution yet, so test all the remaining actions and branch out the tree
-					HashSet<GoapAction> subset = actionSubset(usableActions, action);
-					bool found = buildGraph(node, leaves, subset, goal);
+
+                    
+
+                    // not at a solution yet, so test all the remaining actions and branch out the tree
+                    // if action is reusable, don't remove it from usableActions
+                    HashSet<GoapAction> subset = usableActions;
+
+                    if (action.isReusable) {
+                        if (action is CommissionProjectAction cp) {
+                            if (cp.loop > cp.ProjQueueLength()) {
+                                subset = actionSubset(usableActions, action);
+                            }
+                            else {
+                                cp.NextProject();
+                            }
+                        }
+                    }
+                    else {
+                        subset = actionSubset(usableActions, action);
+                    }
+
+                    bool found = buildGraph(node, leaves, subset, goal);
 					if (found)
 						foundOne = true;
 				}

@@ -11,6 +11,7 @@ public class Building : IBuilding {
     public int Floors { get; private set; }
     public int SquareFeet { get; private set; }
     public Lot Lot { get; private set; }
+    public BuildingDesign Design { get; private set; }
 
     public List<System.Tuple<Use, float>> Uses = new List<System.Tuple<Use, float>>();
 
@@ -24,15 +25,20 @@ public class Building : IBuilding {
     public float ValueToOwner { get; set; }
     public List<Tuple<Entity, Person, float, float>> Valuations { get; set; }
 
-    public Building(Entity owner, int fls, int sqf, Lot lot = null, bool iscomplete = false)
+    public Building(BuildingDesign design, bool iscomplete = false)
     {
-        OwningEntity = owner;
-        Lot = lot;
-        Floors = fls;
-        SquareFeet = sqf;
+        OwningEntity = design.OwningEntity;
+        SetDesign(design);
+        Lot = design.lot;
+        Floors = design.floors;
+        SquareFeet = design.sqft;
         isComplete = iscomplete;
         Class = "RealEstate";
         Neighborhood = Lot.Neighborhood;
+    }
+
+    public void SetDesign(BuildingDesign d) {
+        Design = d;
     }
 
     public void AddUse(System.Tuple<Use,float> use) {
@@ -50,9 +56,12 @@ public class Building : IBuilding {
             new WorkReq(SkillType.BldFinishing, SquareFeet, 1, order: 3, maxAmt: SquareFeet)
         };
         project = new Project(OwningEntity, this, Reqs);
-        project.prereqs.Add(OwningEntity.ID+"hasAsset", Lot);
 
-        project.prereqs.Add(Lot.Address + "isBuildable", true);
+        project.prereqs.Add(OwningEntity.ID+"hasAsset", Lot);
+        project.prereqs.Add("hasBldDesign", true);
+        project.effects.Add("hasBld", true);
+
+        //project.prereqs.Add(Lot.Address + "isBuildable", true);
 
         return project;
     }
@@ -62,7 +71,7 @@ public class Building : IBuilding {
         Debug.Log("Starting construction " + Name);
         GameObject obj = GameObject.Instantiate(Resources.Load("buildings/house_test_1"), Lot.transform) as GameObject;
         BuildingObj = obj.GetComponent<BuildingObj>();
-        Lot.Buildings.Add(this);
+        Lot.Building = this;
         BuildingObj.Init(this);
     }
 
@@ -71,6 +80,9 @@ public class Building : IBuilding {
     {
         PercentComplete = 100f;
         Transfer(OwningEntity);
+        project.ForceComplete();
+        Lot.OnLotUpdate.Invoke(Lot); //TODO: move this to lot
+        Debug.Log("bld done");
         
         isComplete = true;
     }
@@ -99,10 +111,79 @@ public class Building : IBuilding {
     }
 }
 
+
+public class BuildingDesign : IProjectable {
+    public string Name { get; set; }
+
+    private Use use;
+    public int sqft;
+    public Lot lot;
+    public int floors;
+
+    public bool isComplete;
+    public Building Building;
+    public Project BuildingProject;
+    private Project project;
+    public Entity OwningEntity { get; set; }
+
+    public Project GetProject() {
+        if (project != null) {
+            return project;
+        }
+        else {
+            project = CreateProject();
+            return project;
+        }
+    }
+
+    public Project CreateProject() {
+        var Reqs = new List<WorkReq>
+        {
+            new WorkReq(SkillType.BldDesign, sqft)
+        };
+
+        project = new Project(OwningEntity, this, Reqs);
+
+        //project.prereqs.Add("hasLotForDev", true);
+        project.effects.Add("hasBldDesign", true);
+        //project.prereqs.Add(lot.Address + "isBuildable", true);
+
+        return project;
+    }
+
+    public BuildingDesign(Entity e, Use u, int s, Lot l, int fl = 0) {
+        OwningEntity = e;
+        use = u;
+        sqft = s;
+        lot = l;
+        floors = 1; //TODO:
+        Name = l.Address + " design";
+    }
+
+    public Building GetBuilding() {
+        if (Building != null) {
+            return Building;
+        }
+        else {
+            Building = new Building(this);
+            return Building;
+        }
+    }
+
+    public void Complete() {
+        isComplete = true;
+        project.ForceComplete();
+        lot.SetDesign(this);
+    }
+
+}
+
+
+/*
 public static class BuildingCreator {
     public static Building CreateBuilding(Entity owner, int fls, int sqf, Lot lot = null) {
         Building b = new Building(owner, fls, sqf, lot);
         return b;
     }
 }
-
+*/

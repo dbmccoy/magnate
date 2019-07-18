@@ -29,9 +29,11 @@ public class CityGovSensor : Sensor
             if(assetToSell == null) {
                 assetToSell = ChooseAssetToSell();
             }
-            else {
-                sellAction.SetAsset(assetToSell);
-                sellAction.cost = assetToSell.GetValue() -assetToSell.ValueToOwner;
+            else if( Entity.Assets.Count > 0) {
+                AssetListing listing = new AssetListing(assetToSell, Officer, assetToSell.GetValue());
+                AssetBullitin.Instance.Add(listing);
+                sellAction.AddListing(listing);
+                assetToSell = null;
             }
         }
         else {
@@ -51,8 +53,7 @@ public class CityGovSensor : Sensor
         //calc effect on income from divesting
         var assets = Entity.Assets.OrderBy(i => i.GetValue() - i.ValueToOwner);
 
-        assetToSell = assets.First();
-        Debug.Log("want to sell " + assetToSell.Name);
+        assetToSell = assets.Where(x => AssetBullitin.Instance.Query(x) == null).FirstOrDefault();
         return assetToSell;
     }
 

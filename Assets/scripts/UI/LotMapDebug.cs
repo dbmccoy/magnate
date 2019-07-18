@@ -14,13 +14,13 @@ public class LotMapDebug : MonoBehaviour {
     }
 
     public LotMap LotMap;
-    SensorDebug sensorDebug;
+    AgentDebug agentDebug;
 
 
     public void Set(LotMap l, SensorDebug s) {
         text = GetComponentInChildren<Text>();
         LotMap = l;
-        sensorDebug = s;
+        agentDebug = s.AgentDebug;
     }
 
     bool isClicked;
@@ -30,13 +30,13 @@ public class LotMapDebug : MonoBehaviour {
         isClicked = !isClicked;
 
         if (isClicked) {
-            sensorDebug.AddLotMap(LotMap);
+            agentDebug.AddLotMap(LotMap);
         }
         else {
-            sensorDebug.RemoveLotMap(LotMap);
+            agentDebug.RemoveLotMap(LotMap);
         }
 
-        sensorDebug.VisualizeAggregateLotMap();
+        agentDebug.VisualizeAggregateLotMap();
 
         /*
         float max = LotMap.Vals.Max();

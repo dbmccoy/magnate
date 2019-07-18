@@ -76,6 +76,7 @@
     <Compile Include="Assets\scripts\AI\actions\BuyAssetAction.cs" />
     <Compile Include="Assets\scripts\AI\actions\BuyResidenceAction.cs" />
     <Compile Include="Assets\scripts\AI\actions\CommissionProjectAction.cs" />
+    <Compile Include="Assets\scripts\AI\actions\DesignAction.cs" />
     <Compile Include="Assets\scripts\AI\actions\DevelopAction.cs" />
     <Compile Include="Assets\scripts\AI\actions\JobSearchAction.cs" />
     <Compile Include="Assets\scripts\AI\actions\RentOutUnitAction.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="Assets\scripts\AI\Personality.cs" />
     <Compile Include="Assets\scripts\AI\ProjectBullitin.cs" />
     <Compile Include="Assets\scripts\AI\RentalBullitin.cs" />
+    <Compile Include="Assets\scripts\AI\sensors\ArchitectSensor.cs" />
     <Compile Include="Assets\scripts\AI\sensors\CityGovSensor.cs" />
     <Compile Include="Assets\scripts\AI\sensors\DeveloperSensor.cs" />
     <Compile Include="Assets\scripts\AI\sensors\HousingSensor.cs" />
@@ -176,6 +178,7 @@
     <Compile Include="Assets\scripts\View\bl_Floor.cs" />
     <Compile Include="Assets\scripts\ZoneManager.cs" />
     <Compile Include="Assets\TimerObj.cs" />
+    <Compile Include="Assets\UIObj.cs" />
     <None Include="Assets\ProCore\ProBuilder\Shader\pb_TransparentOverlay.shader" />
     <None Include="Assets\ProCore\ProBuilder\API Examples\Icosphere FFT\README.txt" />
     <None Include="Assets\ProCore\ProBuilder\Shader\pb_SelectionPicker.shader" />

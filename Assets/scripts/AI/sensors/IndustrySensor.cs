@@ -28,6 +28,8 @@ public class IndustrySensor : Sensor
     public Lot TargetLot;
     public List<Lot> TargetLots = new List<Lot>();
 
+    public Project DesiredProject;
+
     public override void Sense() {
         if(Officer == null) {
             Officer = GetComponent<Person>();
@@ -39,17 +41,32 @@ public class IndustrySensor : Sensor
         //sensor decides to produce steel and makes a request for the required sqft of industrial use.  Dev sensor 
 
         Officer.AddGoal("ProduceSteel", true);
-        Officer.AddGoal("developUseSqft", new Tuple<Use, float>(Use.Industrial, 10000));
-        //var factory = CreateFactory(10000);
-        if(TargetLots.Count == 0) {
+        Officer.AddGoal("developUseSqft", new Tuple<Use, int>(Use.Industrial, 10000));
+
+        if (TargetLots.Count == 0) {
 
             foreach (var p in DesireMap) {
                 LotEval(p.lot);
             }
 
-            TargetLots = (DesireMap - dev.CostMap).Where(x => x.lot.BuildableSquareFeet() >= 1000 && x.val > 0).OrderByDescending(x => x.val).Select(x => x.lot).ToList();
+            TargetLots = DesireMap.Where(x => x.lot.BuildableSquareFeet() >= 1000 && x.val > 0).OrderByDescending(x => x.val).Select(x => x.lot).ToList();
+
+            TargetLot = TargetLots.FirstOrDefault();
+            if(TargetLot && TargetLot.OwningEntity != Entity) {
+                Officer.AddGoal("hasAsset", TargetLot);
+            }
         }
 
+        if (DesiredProject == null && TargetLot != null && TargetLot.OwningEntity == Entity) {
+            BuildingDesign design = new BuildingDesign(Entity, Use.Industrial, 10000, TargetLot);
+            DesiredProject = design.GetProject();
+
+            person.PlanningProjects.Add(DesiredProject);
+
+        }
+
+        //var factory = CreateFactory(10000);
+        
         //factory is cached for developaction to pursue unless a suitable location can be bought
 
         //Officer.Addgoal("hasAsset", factory);
@@ -85,14 +102,15 @@ public class IndustrySensor : Sensor
     }
 
     float coef_sqft = .1f;
-    float coef_port_dist = -10f;
+    float coef_port_dist = -100f;
+    float coef_cost = -1f;
 
     public void LotEval(Lot l) {
-        var v = (l.SquareFeet * coef_sqft) + (l.DistanceTo(GameManager.Instance.GetComponent<Bootstrap>().Port) * coef_port_dist);
+        
+        var v = (l.SquareFeet * coef_sqft) + (l.DistanceTo(GameManager.Instance.GetComponent<Bootstrap>().Port) * coef_port_dist) + (dev.CostMap.Get(l) * coef_cost);
 
 
-
-        //Debug.Log(v);
+        //Debug.Log(dev.CostMap.Get(l));
 
         DesireMap.Set(l, v);
     }

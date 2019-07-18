@@ -6,6 +6,7 @@ using System.Linq;
 
 public class SensorDebug : MonoBehaviour {
     public Person Agent;
+    public AgentDebug AgentDebug;
     public Text text;
 
     // Start is called before the first frame update
@@ -19,50 +20,10 @@ public class SensorDebug : MonoBehaviour {
 
     public List<LotMap> LotMaps;
 
-    public LotMap AggregateLotMap;
-    private List<LotMap> currentLotMaps = new List<LotMap>();
-
-    public void AddLotMap(LotMap m) {
-        currentLotMaps.Add(m);
-    }
-
-    public  void RemoveLotMap(LotMap m) {
-        currentLotMaps.Remove(m);
-    }
-
-    public void VisualizeAggregateLotMap() {
-
-        for (int i = 0; i < currentLotMaps.Count; i++) {
-            if(i == 0) {
-                AggregateLotMap = currentLotMaps[i];
-            }
-            else {
-                AggregateLotMap = AggregateLotMap + currentLotMaps[i];
-            }
-        }
-
-        float max = AggregateLotMap.Vals.Max();
-        float min = AggregateLotMap.Vals.Min();
-        float avg = AggregateLotMap.Vals.Average();
-
-        foreach (var p in AggregateLotMap) {
-            //Debug.Log(LotMap.Name + " : " + p.lot.Address + " : " + p.val);
-
-            float adj = ((p.val - avg) * 2f) /  (max - min);
-
-            if(adj > 0) {
-                p.lot.GetComponent<MeshRenderer>().material.color = new Color(0, adj, 0);
-            }
-            else {
-                p.lot.GetComponent<MeshRenderer>().material.color = new Color(-adj,0, 0);
-            }
-        }
-    }
-
-    public void Set(Sensor s) {
+    public void Set(Sensor s, AgentDebug a) {
         text = GetComponentInChildren<Text>();
         Sensor = s;
-
+        AgentDebug = a;
     }
 
     public void OnClick() {

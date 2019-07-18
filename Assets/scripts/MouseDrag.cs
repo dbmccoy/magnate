@@ -1,8 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MouseDrag : MonoBehaviour {
+
+    private static MouseDrag _instance;
+
+    public static MouseDrag Instance {
+        get {
+            if(_instance == null) {
+                _instance = Camera.main.GetComponent<MouseDrag>();
+            }
+
+            return _instance;
+        }
+    }
 
     public Vector3 LastMousePosition;
     public Vector3 dragToPoint;
@@ -10,6 +23,11 @@ public class MouseDrag : MonoBehaviour {
     public float OffsetY;
     Vector3 last;
     bool isDragging;
+    bool canZoom = true;
+
+    public void CanZoom(bool b) {
+        canZoom = b;
+    }
 
 	// Use this for initialization
 	void Start () {
@@ -51,7 +69,9 @@ public class MouseDrag : MonoBehaviour {
             if(Camera.main.transform.position.y > 200f) scrollAmount = Mathf.Clamp(Input.GetAxis("Mouse ScrollWheel"), -.1f, 0f);
             if(Camera.main.transform.position.y < 10) scrollAmount = Mathf.Clamp(Input.GetAxis("Mouse ScrollWheel"), 0f, .1f);
 
-            Camera.main.transform.Translate(dir * scrollAmount, Space.World);
+            if (canZoom) {
+                Camera.main.transform.Translate(dir * scrollAmount, Space.World);
+            }
         }
         if (Input.GetMouseButtonUp(0)) {
             isDragging = false;
