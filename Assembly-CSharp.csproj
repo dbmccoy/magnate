@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\GameManager.cs" />
     <Compile Include="Assets\NodeObj.cs" />
+    <Compile Include="Assets\PlannerDebug.cs" />
     <Compile Include="Assets\ProCore\ProBuilder\API Examples\Icosphere FFT\Scripts\CameraControls.cs" />
     <Compile Include="Assets\ProCore\ProBuilder\API Examples\Icosphere FFT\Scripts\IcoBumpin.cs" />
     <Compile Include="Assets\ProCore\ProBuilder\API Examples\Misc\HueCube.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Assets\scripts\AI\sensors\ProjectSensor.cs" />
     <Compile Include="Assets\scripts\AI\sensors\RealEstateSensor.cs" />
     <Compile Include="Assets\scripts\AI\sensors\Sensor.cs" />
+    <Compile Include="Assets\scripts\AI\StateBullitin.cs" />
     <Compile Include="Assets\scripts\Assets\Asset.cs" />
     <Compile Include="Assets\scripts\Assets\Building.cs" />
     <Compile Include="Assets\scripts\Assets\Factory.cs" />

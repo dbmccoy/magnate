@@ -29,7 +29,11 @@ public abstract class GoapAction : MonoBehaviour {
 
     public bool isReusable;
 
-    public virtual void addToPlan() {
+    public virtual bool addToPlan(string id) {
+        return true;
+    }
+
+    public virtual void addToFinalPlan(string id) {
 
     }
 
@@ -67,6 +71,17 @@ public abstract class GoapAction : MonoBehaviour {
 	 * will need this, but some might.
 	 */
 	public abstract bool checkProceduralPrecondition(GameObject agent);
+
+    protected int blackListCount;
+    public int blackListLimit = 10;
+
+    protected virtual bool failProceduralPreconditions() {
+        return false;
+    }
+
+    protected virtual void hardReset() {
+
+    }
 
 	/**
 	 * Run the action.

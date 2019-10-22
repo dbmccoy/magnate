@@ -20,6 +20,7 @@ public class DevelopAction : GoapAction {
 
     public void Start() {
         person = GetComponent<Person>();
+        sensor = GetComponent<DeveloperSensor>();
     }
 
     UseReqs reqs;
@@ -44,7 +45,7 @@ public class DevelopAction : GoapAction {
             commission = GetComponent<CommissionProjectAction>();
         }
 
-        if(reqs == null) {
+        if(lot == null) {
             foreach (var g in person.FindGoals("developUseSqft")) {
                 if(g.Value is UseReqs r) {
                     reqs = r;
@@ -52,58 +53,78 @@ public class DevelopAction : GoapAction {
                     lots = map.Select(x => (IAsset)x.lot).ToList();
                     addEffect("developUseSqft", reqs);
 
-                    SetLot((Lot)lots.FirstOrDefault());
+                    SetLot((Lot)lots.Where(x => !blacklist.Contains(x)).FirstOrDefault());
                     break;
                 }
             }
 
-            if(reqs == null) {
-                return false;
+            addPrecondition("hasBld", true);
+
+            if (lot == null) {
+                return failProceduralPreconditions();
             }
         }
 
         if (lot != null) {
             addPrecondition(person.CurrentEntity.ID + "hasAsset", lot);
-            addPrecondition("hasBldDesign", true);
             addPrecondition("hasBld", true);
+
+            if(lot.Building != null) {
+                return failProceduralPreconditions();
+            }
             
             if (designProj == null) {
-                commission.ClearProjectQueue();
                 design = new BuildingDesign(Entity, reqs.use, reqs.sqft, lot);
                 designProj = design.GetProject();
-                designProj.Deliverable.Name = "des";
-                commission.EnqueueProject(designProj);
-                Debug.Log("adding design proj");
+                designProj.Deliverable.Name = design.lot.Address + " design";
+                person.PlanningProjects.Add(designProj);
             }
             
             if (bldProj == null) {
                 building = design.GetBuilding();
                 bldProj = building.CreateProject();
-                bldProj.Deliverable.Name = "bld";
-
-                commission.EnqueueProject(bldProj);
-                Debug.Log("adding bldg proj");
+                bldProj.Deliverable.Name = building.Lot.Address + " bld";
+                person.PlanningProjects.Add(bldProj);
+                //commission.EnqueueProject(bldProj);
             }
 
         }
-        else return false;
+        else return failProceduralPreconditions();
 
         return true;
     }
 
+    protected override bool failProceduralPreconditions() {
+        if(lot == null) {
+            return false;
+        }
+        blackListCount++;
+        if(blackListCount >= blackListLimit) {
+            blackListCount = 0;
+            blacklist.Add(lot);
+            Debug.Log("adding " + lot.Address + " to blacklist");
+            hardReset();
+        }
+        return false;
+    }
+
     public override bool isDone() {
-        var done = meetsReqs || design.isComplete; //(bldProj != null && bldProj.isComplete());
+
+        if(bldProj != null && bldProj.isComplete()) {
+            meetsReqs = true;
+        }
+
+        var done = meetsReqs || design.isComplete;
+
+        Debug.Log(person + ": develop action complete: " + done);
+
         if (done) {
             person.RemoveGoal("developUseSqft", reqs);
-            lot = null;
-            Debug.Log("done developing");
-            Preconditions.Clear();
-            Effects.Clear();
-            Project = null;
-            bldProj = null;
-            designProj = null;
-            reqs = null;
-            inProgress = false;
+            //sensor.CompleteProject();
+            Debug.Log("DevelopAction.isDone: complete");
+            blacklist.Add(lot);
+            Debug.Log("adding " + lot.Address + " to blacklist");
+            hardReset();
         }
         return done;
     }
@@ -115,10 +136,16 @@ public class DevelopAction : GoapAction {
         lot = l;
     }
 
+    public void BlacklistLot(Lot l) {
+
+    }
+
     bool inProgress;
     
 
     public override bool perform(GameObject agent) {
+        
+
 
         if (meetsReqs) return true;
 
@@ -132,6 +159,17 @@ public class DevelopAction : GoapAction {
 
     public override void reset() {
 
+    }
+
+    protected override void hardReset() {
+        lot = null;
+        Preconditions.Clear();
+        Effects.Clear();
+        Project = null;
+        bldProj = null;
+        designProj = null;
+        reqs = null;
+        inProgress = false;
     }
 }
 

@@ -53,7 +53,7 @@ public class LotMap : IEnumerable<LotMapPair>
         }
 
         for (int i = 0; i < 5; i++) {
-            Debug.Log(Lots[i].Address + " = " + Vals[i]);
+            //Debug.Log(Lots[i].Address + " = " + Vals[i]);
         }
     }
 

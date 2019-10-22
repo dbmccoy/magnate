@@ -68,7 +68,7 @@ public class Building : IBuilding {
 
     public void StartConstruction()
     {
-        Debug.Log("Starting construction " + Name);
+        Debug.Log("Starting construction " + Lot.Address);
         GameObject obj = GameObject.Instantiate(Resources.Load("buildings/house_test_1"), Lot.transform) as GameObject;
         BuildingObj = obj.GetComponent<BuildingObj>();
         Lot.Building = this;
@@ -144,6 +144,7 @@ public class BuildingDesign : IProjectable {
 
         project = new Project(OwningEntity, this, Reqs);
 
+        project.prereqs.Add(project.Deliverable.OwningEntity.ID + "hasAsset", lot);
         //project.prereqs.Add("hasLotForDev", true);
         project.effects.Add("hasBldDesign", true);
         //project.prereqs.Add(lot.Address + "isBuildable", true);

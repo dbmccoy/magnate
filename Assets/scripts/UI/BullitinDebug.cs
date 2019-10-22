@@ -27,6 +27,10 @@ public class BullitinDebug : MonoBehaviour
                 contents += "RentalBulltin\n";
                 RentalBullitin.Instance.Available.ForEach(x => contents += x.Unit.Name + "\n");
                 break;
+            case "ProjectBullitin":
+                contents += "ProjectBulltin\n";
+                ProjectBullitin.Instance.Available.ForEach(x => contents += x.Deliverable.Name + "\n");
+                break;
             default:
                 contents = "empty";
                 break;

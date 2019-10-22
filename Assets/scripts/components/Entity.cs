@@ -74,8 +74,14 @@ public class Entity : IAsset, ITemporal {
 
     public virtual void AcquireAsset(IAsset asset)
     {
+        if(asset == null) {
+            Debug.Log("Entity.AcquireAsset: asset is null");
+            return;
+        }
         Assets.Add(asset);
-        asset.GrantActionsTo(Officer);
+        if(Officer != null) {
+            asset.GrantActionsTo(Officer);
+        }
         asset.OwningEntity = this;
 
     }

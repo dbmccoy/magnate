@@ -31,6 +31,7 @@ public class ProjectSensor : Sensor {
 
     public void EnqueProject(Project project)
     {
+        Debug.Log(person.name + " senses project " + project.Deliverable.ToString() + " for " + project.Deliverable.OwningEntity.Officer);
         //bid process goes where?
         if (CanDeliver(project)) {
             Debug.Log(person.Name + ": I can deliver this");
@@ -69,6 +70,7 @@ public class ProjectSensor : Sensor {
         var plan = Agent.planner.plan(Agent.gameObject, dummyActions, state, goal);
 
         Destroy(dummy);
+
         return plan != null;
     }
 

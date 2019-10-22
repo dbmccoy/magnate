@@ -10,11 +10,16 @@ public class ProjectBullitin
     public ProjectEvent AddProjectToBullitinEvent;
     public List<Project> Available = new List<Project>();
 
-    public void Add(Project listing)
+    public bool Add(Project listing)
     {
         Debug.Log("add " + listing + " " + listing.Deliverable.Name);
         Available.Add(listing);
         AddProjectToBullitinEvent.Invoke(listing);
+
+        if (Available.Contains(listing)) {
+            return true;
+        }
+        else return false;
     }
 
     public void Remove(Project listing) {

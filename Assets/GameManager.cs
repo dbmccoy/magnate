@@ -89,6 +89,12 @@ public class GameManager : MonoBehaviour
 
             var t = "";
 
+            var curact = person.GetAgent().CurrentAction();
+            if(curact != null) {
+                t = t + "     current action: " + GoapAgent.prettyPrint(curact) + "\n";
+            }
+            
+
             foreach (var item in person.GoalQueue) {
                 t = t + "    " + GoapAgent.prettyPrint(item) + "\n";
             }

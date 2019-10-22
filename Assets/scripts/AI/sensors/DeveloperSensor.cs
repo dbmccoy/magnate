@@ -84,6 +84,11 @@ public class DeveloperSensor : Sensor {
     UseReqs currentReqs;
     bool updatedLots;
 
+    public void CompleteProject() {
+        currentProject = null;
+        currentReqs = null;
+    }
+
     public override void Sense() {
         Neighborhoods = GameManager.Instance.GetComponent<Bootstrap>().Neighborhoods;
         Neighborhoods.ForEach(x => NHoodEval(x));
@@ -98,9 +103,11 @@ public class DeveloperSensor : Sensor {
 
         if(currentReqs != null) {
             bool inProgress = false;
+
             foreach (var g in person.FindGoals("developUseSqft")) {
                 if(g.Value == currentReqs) {
                     inProgress = true;
+                    //Debug.Log(g.Key.ToString() + " : " + currentReqs.ToString());
                 }
             }
 

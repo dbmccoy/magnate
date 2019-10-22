@@ -18,6 +18,7 @@ public class DesignAction : GoapAction, IProjectAction
         if(tempProject == null) {
             //return false;
         }
+
         if(person.Project != null && person.Project.Deliverable is BuildingDesign bd) {
 
             tempProject = bd.GetProject();
@@ -36,14 +37,17 @@ public class DesignAction : GoapAction, IProjectAction
 
         }
 
-
-        
-
         return true;
     }
 
     public override bool isDone() {
-        return design.isComplete;
+        if (design.isComplete) {
+            design = null;
+            tempProject = null;
+            Debug.Log("nulling design action stuff");
+            return true;
+        }
+        return false;
     }
 
     public override bool perform(GameObject agent) {

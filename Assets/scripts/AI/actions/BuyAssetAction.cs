@@ -35,12 +35,16 @@ public class BuyAssetAction : GoapAction
             foreach(var a in person.GetAgent().availableActions) {
 
                 foreach (var c in a.Preconditions) {
-                    //Debug.Log(GoapAgent.prettyPrint(person.GetAgent().Goal) + " has pc " + c.Key + ":" + c.Value.ToString());
+                    //Debug.Log(GoapAgent.prettyPrint(a) + " has precond " + c.Key + ":" + c.Value.ToString());
+
+                    if(a is CommissionProjectAction cp) {
+                        Debug.Log(cp.tempProject.Deliverable);
+                    }
 
                     if (c.Key.Contains("hasAsset")) {
 
                         Target = AssetBullitin.Instance.Query((IAsset)c.Value);
-                        
+                        Debug.Log(c.Value);
                     }
 
                     if (Target != null) {

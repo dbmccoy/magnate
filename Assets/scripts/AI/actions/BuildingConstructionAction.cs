@@ -48,35 +48,52 @@ public class BuildingConstructionAction : GoapAction, IProjectAction
     {
         var c = tempProject.isComplete();
         if (c) {
-            person.RemoveGoal(tempProject.Entity.ID + "hasAsset", tempProject.Deliverable.Name);
-            person.Project = null;
-            tempProject = null;
-            inProgress = false;
+            hardReset();
         }
         return c;
     }
 
     public override bool checkProceduralPrecondition(GameObject agent)
     {
-        bool ok = false;
-
-        if (person.Project != null && person.Project.Deliverable is Building b)
+        if (person.Project != null && 
+            person.Project.Deliverable is Building b
+            )
         {
             tempProject = person.Project;
             var OwnerEntity = tempProject.Entity;
 
             building = b;
-
             //addPrecondition("hasBldDesign", true);
             addPrecondition("meetsWorkReqs", tempProject);
             addEffect(OwnerEntity.ID+"hasAsset", b.Name);
             //addEffect(b.Lot + "hasBuilding", b.Design);
             addEffect(tempProject + "complete", true);
 
-            ok = true;
+            return true;
         }
+        return failProceduralPreconditions();
+    }
 
-        return ok;
+    protected override bool failProceduralPreconditions() {
+        blackListCount++;
+        if(blackListCount >= blackListLimit) {
+            hardReset();
+        }
+        return false;
+    }
+
+    protected override void hardReset() {
+        blackListCount = 0;
+        person.Project = null;
+        building = null;
+        Preconditions.Clear();
+        Effects.Clear();
+        if(tempProject != null) {
+            person.RemoveGoal(tempProject.Entity.ID + "hasAsset", tempProject.Deliverable.Name);
+        }
+        
+        tempProject = null;
+        inProgress = false;
     }
 
     private bool inProgress = false;

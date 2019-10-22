@@ -7,7 +7,7 @@ using System.Linq;
 
 public sealed class GoapAgent : MonoBehaviour {
 
-    public float UpdateRate = .1f;
+    public float UpdateRate = 1f;
 
 	private FSM stateMachine;
 
@@ -38,11 +38,12 @@ public sealed class GoapAgent : MonoBehaviour {
     private float sinceLastUpdate;
 
 	void Update () {
+        
+        sinceLastUpdate += Time.deltaTime;
         sinceLastUpdate = 0f;
         loadActions();
         stateMachine.Update(this.gameObject);
-        sinceLastUpdate += Time.deltaTime;
-        if(sinceLastUpdate > UpdateRate)
+        if (sinceLastUpdate > UpdateRate)
         {
             
         }
@@ -188,6 +189,7 @@ public sealed class GoapAgent : MonoBehaviour {
 				fsm.popState();
 				fsm.pushState(idleState);
 				dataProvider.actionsFinished();
+                currAct = null;
 				return;
 			}
 
@@ -195,7 +197,8 @@ public sealed class GoapAgent : MonoBehaviour {
 
 			GoapAction action = currentActions.Peek();
             currAct = action;
-			if ( action.isDone() ) {
+            //Debug.Log(prettyPrint(action));
+            if ( action.isDone() ) {
                 // the action is done. Remove it so we can perform the next one
 				currentActions.Dequeue();
 			}
@@ -210,7 +213,8 @@ public sealed class GoapAgent : MonoBehaviour {
 					bool success = action.perform(gameObj);
 
 					if (!success) {
-						// action failed, we need to plan again
+                        // action failed, we need to plan again
+                        //Debug.Log(action.ToString());
 						fsm.popState();
 						fsm.pushState(idleState);
 						dataProvider.planAborted(action);

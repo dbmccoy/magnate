@@ -20,6 +20,7 @@ public class AgentDebug : MonoBehaviour
     public List<Button> Buttons = new List<Button>();
 
     public List<Sensor> Sensors;
+    public Text stateText;
 
     public void Set(Person a) {
         text = GetComponentInChildren<Text>();
@@ -29,7 +30,37 @@ public class AgentDebug : MonoBehaviour
     }
 
     public void OnClick() {
+        //SetContextSensors();
+        SetContextState();
 
+    }
+
+    public enum State {
+        None,
+        AgentState,
+        Sensors
+    }
+
+    public State currentState;
+
+    void SetContextState() {
+        var b = Instantiate(Resources.Load<Button>("UI/DynamicButton"), transform.position, Quaternion.identity);
+
+        var state = Agent.GetComponent<GoapAgent>().dataProvider.getWorldState();
+
+        var s = "";
+
+        foreach (var item in state) {
+            s += item.Key + " > " + item.Value +"\n";
+        }
+
+        b.GetComponentInChildren<Text>().text = s;
+
+        b.transform.SetParent(this.transform);
+        Buttons.Add(b);
+    }
+
+    void SetContextSensors() {
         Sensors = Agent.GetComponents<Sensor>().ToList();
         for (int i = 0; i < Sensors.Count; i++) {
             var b = Instantiate(Resources.Load<Button>("UI/DynamicButton"), transform.position, Quaternion.identity);
@@ -45,7 +76,6 @@ public class AgentDebug : MonoBehaviour
                 b.GetComponent<RectTransform>().localPosition = Buttons[i - 1].GetComponent<RectTransform>().localPosition + new Vector3(0, -30, 0);
             }
         }
-
     }
 
     public LotMap AggregateLotMap;
@@ -91,6 +121,11 @@ public class AgentDebug : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if(currentState == State.AgentState) {
+            SetContextState();
+        }
+        if(currentState == State.Sensors) {
+            SetContextSensors();
+        }
     }
 }

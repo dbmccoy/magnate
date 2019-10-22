@@ -22,6 +22,8 @@ public class Person : MonoBehaviour, IGoap, IProductive{
     [HideInInspector]
     public bool isDummy;
 
+    public bool DeepDebug;
+
     public Queue<Project> Projects = new Queue<Project>();
     public List<Project> PlanningProjects = new List<Project>();
     public List<HashSet<KeyValuePair<string, object>>> GoalQueue = new List<HashSet<KeyValuePair<string, object>>>();
@@ -125,6 +127,8 @@ public class Person : MonoBehaviour, IGoap, IProductive{
 
     public void DayTick()
     {
+        GetAgent().planner.ToggleDeepDebug(DeepDebug);
+
         if(CurrentGoal != null) {
             CurrentGoal.Clear();
 
@@ -171,7 +175,7 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         HashSet<KeyValuePair<string, object>> worldData = new HashSet<KeyValuePair<string, object>>
         {
             new KeyValuePair<string, object>("hasJob", (Job != null)),
-            new KeyValuePair<string, object>("hasResidence", (Residence != null))
+            //new KeyValuePair<string, object>("hasResidence", (Residence != null))
         };
 
         sensors.ForEach(x => worldData.UnionWith(x.ReturnWorldData()));
@@ -299,6 +303,8 @@ public class Person : MonoBehaviour, IGoap, IProductive{
         // Debug.Log("<color=green>" + Name + ": Plan found</color> " + GoapAgent.prettyPrint(actions) + ": " + GoapAgent.prettyPrint(goal));
         currentPlan = "";// GoapAgent.prettyPrint(actions);
 
+        var cpcount = 0;
+
         foreach (var action in actions) {
 
             string col = "<color=blue>";
@@ -306,7 +312,19 @@ public class Person : MonoBehaviour, IGoap, IProductive{
             if(action == GetAgent().CurrentAction()) {
                 col = "<color=green>";
             }
-            currentPlan += col + GoapAgent.prettyPrint(action) + "</color>"+"\n";
+            if(action is CommissionProjectAction cp) {
+                try {
+                    currentPlan += col + " commission " + cp.projectSequence[cpcount].Deliverable.Name + "</color>" + "\n";
+                    cpcount++;
+                }
+                catch {
+
+                }
+            }
+            else {
+                currentPlan += col + GoapAgent.prettyPrint(action) + "</color>" + "\n";
+            }
+            
 
         }
     }

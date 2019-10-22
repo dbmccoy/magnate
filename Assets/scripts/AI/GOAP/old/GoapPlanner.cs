@@ -8,17 +8,24 @@ using System.Linq;
  */
 public class GoapPlanner
 {
+    bool deepDebug;
+    public void ToggleDeepDebug(bool v) {
+        deepDebug = v;
+    }
 
-	/**
+
+    /**
 	 * Plan what sequence of actions can fulfill the goal.
 	 * Returns null if a plan could not be found, or a list of the actions
 	 * that must be performed, in order, to fulfill the goal.
 	 */
-	public Queue<GoapAction> plan(GameObject agent,
+    public Queue<GoapAction> plan(GameObject agent,
 								  HashSet<GoapAction> availableActions, 
 	                              HashSet<KeyValuePair<string,object>> worldState, 
 	                              HashSet<KeyValuePair<string,object>> goal) 
 	{
+        
+        
 
         if(goal.Count == 0)
         {
@@ -36,10 +43,6 @@ public class GoapPlanner
 		foreach (GoapAction a in availableActions) {
 			if ( a.checkProceduralPrecondition(agent)) {
                 usableActions.Add(a);
-                
-            }
-            else {
-                
             }
         }
 		
@@ -48,14 +51,17 @@ public class GoapPlanner
 		// build up the tree and record the leaf nodes that provide a solution to the goal.
 		List<Node> leaves = new List<Node>();
 
-		// build graph
-		Node start = new Node (null, 0, worldState, null);
-		bool success = buildGraph(start, leaves, usableActions, goal);
+        // build graph
+
+        Node start = new Node (null, 0, worldState, null);
+        //bool success = reverseSearch(start, leaves, usableActions, goal, worldState, agent.GetComponent<GoapAgent>());
+		bool success = buildGraph(start, leaves, usableActions, goal, agent.GetComponent<GoapAgent>());
+        
 
 		if (!success) {
             // oh no, we didn't get a plan
-            if (agent.GetComponent<Person>().Name == "Richie") {
-                //Debug.Log(agent.GetComponent<Person>().name + " NO PLAN " + GoapAgent.prettyPrint(goal));
+            if (deepDebug) {
+                Debug.Log(agent.GetComponent<Person>().name + " NO PLAN " + GoapAgent.prettyPrint(goal));
             }
 			
 			return null;
@@ -81,83 +87,153 @@ public class GoapPlanner
 			}
 			n = n.parent;
 		}
-		// we now have this action list in correct order
+        // we now have this action list in correct order
 
-		Queue<GoapAction> queue = new Queue<GoapAction> ();
+        var id = (leaves.IndexOf(cheapest) + 1).ToString();
+
+        Queue<GoapAction> queue = new Queue<GoapAction> ();
 		foreach (GoapAction a in result) {
-            //Debug.Log(a.ToString());
-			queue.Enqueue(a);
+            queue.Enqueue(a);
+            a.addToFinalPlan(id);
 		}
 
         // hooray we have a plan!
-        //Debug.Log(agent.GetComponent<Person>().name + queue.Count);
-		return queue;
+        if (deepDebug) {
+            Debug.Log("we have a plan! " + agent.GetComponent<Person>().name + queue.Count);
+        }
+        return queue;
 	}
-
+    
     /**
 	 * Returns true if at least one solution was found.
 	 * The possible paths are stored in the leaves list. Each leaf has a
 	 * 'runningCost' value where the lowest cost will be the best action
 	 * sequence.
 	 */
+
     int loops = 0;
 
-
-    private bool buildGraph (Node parent, List<Node> leaves, HashSet<GoapAction> usableActions, HashSet<KeyValuePair<string, object>> goal, GoapAgent agent = null)
+    private bool buildGraph (Node parent, List<Node> leaves, HashSet<GoapAction> usableActions, HashSet<KeyValuePair<string, object>> goal, GoapAgent agent)
 	{
-		bool foundOne = false;
-        string planID = UnityEngine.Random.Range(0, 100).ToString();
-
+        bool foundOne = false;
 
         // go through each action available at this node and see if we can use it here
 
         foreach (GoapAction action in usableActions) {
-
+            //Debug.Log("next action " + GoapAgent.prettyPrint(action) + " " + usableActions.Count);
             // if the parent state has the conditions for this action's preconditions, we can use it here
-            if ( inState(action.Preconditions, parent.state) ) {
 
-				// apply the action's effects to the parent state
-				HashSet<KeyValuePair<string,object>> currentState = populateState (parent.state, action.Effects);
+            if ( inState(action.Preconditions, parent.state) ) {
+                // apply the action's effects to the parent state
+
+                if (agent.GetComponent<Person>().name == "Richie") {
+                    var db = GameObject.Find("PlannerDebugText").GetComponent<PlannerDebug>();
+                    db.worldState = parent.state;
+                    db.goal = goal;
+                }
+
+                if (inState(action.Effects, parent.state)) {
+
+                    foreach (var item in action.Effects) {
+                        Debug.Log(item.Key + " : " + item.Value + " already in state");
+                    }
+                    if(action.Effects.Count == 0) {
+                        Debug.Log(GoapAgent.prettyPrint(action)+" no effects");
+                    }
+                    continue;
+                }
+                
+                HashSet<KeyValuePair<string,object>> currentState = populateState (parent.state, action.Effects);
 
                 Node node = new Node(parent, parent.runningCost+action.cost, currentState, action);
 
-                foreach (var kvp in action.Preconditions) {
-                    Debug.Log(GoapAgent.prettyPrint(action) + " " + kvp.Key + " : " + kvp.Value);
+                string s = "";
+                var n = node;
+                while (n.parent != null){
+                    if(n.parent.action != null) {
+                        s += GoapAgent.prettyPrint(n.parent.action) + " > ";
+                    }
+                    n = n.parent;
+                }
+                if(action != null) {
+                    s += GoapAgent.prettyPrint(action);
                 }
 
-                action.addToPlan();
-
-				if (inState(goal, currentState)) {
+                if (inState(goal, currentState)) {
+                    foreach (var item in currentState) {
+                        //Debug.Log(item.Key + " : " + item.Value);
+                    }
 					// we found a solution!
-					leaves.Add(node);
-					foundOne = true;
-				} else {
+                    if(action.addToPlan(leaves.Count.ToString()) == true) {
+                        foundOne = true;
+                        leaves.Add(node);
+                        if(action is DevelopAction cp) {
+                            Debug.Log(GoapAgent.prettyPrint(action) + leaves.Count + " adding leaf " + s);
+                        }
+                        
+                    }
 
-                    
 
+                }
+                else {
                     // not at a solution yet, so test all the remaining actions and branch out the tree
                     // if action is reusable, don't remove it from usableActions
                     HashSet<GoapAction> subset = usableActions;
 
                     if (action.isReusable) {
                         if (action is CommissionProjectAction cp) {
-                            if (cp.loop > cp.ProjQueueLength()) {
+                            cp.checkProceduralPrecondition(cp.gameObject);
+                            loops++;
+                            if (cp.availableProjects.Count == 0) {
                                 subset = actionSubset(usableActions, action);
+                                Debug.Log("subset: no available projects");
                             }
                             else {
-                                cp.NextProject();
+                                if(loops++ > 10) {
+                                    subset = actionSubset(usableActions, action);
+                                    //cp.doHardReset();
+                                    Debug.Log("subset: time out");
+                                    loops = 0;
+                                }
+                                
                             }
                         }
                     }
                     else {
                         subset = actionSubset(usableActions, action);
                     }
+                    bool found = buildGraph(node, leaves, subset, goal, agent);
+					if (found) {
+                        if(action.addToPlan(leaves.Count.ToString()) == true) {
+                            foundOne = true;
+                            s = "";
+                            n = node;
+                            while (n.parent != null) {
+                                if (n.parent.action != null) {
+                                    s += GoapAgent.prettyPrint(n.parent.action) + " > ";
+                                }
+                                n = n.parent;
+                            }
+                        }
 
-                    bool found = buildGraph(node, leaves, subset, goal);
-					if (found)
-						foundOne = true;
-				}
+
+                        
+                        //Debug.Log(action.ToString());
+                        if (action is CommissionProjectAction cp) {
+                            foreach (var kvp in cp.Effects) {
+                                //Debug.Log(kvp.Key + " : " + kvp.Value);
+                            }
+                            if (cp.availableProjects.Count == 0) {
+                                subset = actionSubset(usableActions, action);
+                                Debug.Log("subset: no available projects");
+                            }
+                        }
+                    }
+                }
 			}
+            else {
+               
+            }
 		}
 
 		return foundOne;
@@ -246,6 +322,7 @@ public class GoapPlanner
 		}
 	}
 
+    
 }
 
 
