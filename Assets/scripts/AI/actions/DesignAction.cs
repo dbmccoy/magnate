@@ -15,8 +15,8 @@ public class DesignAction : GoapAction, IProjectAction
     };
 
     public override bool checkProceduralPrecondition(GameObject agent) {
-        if(tempProject == null) {
-            //return false;
+        if(person.Project == null) {
+            return false;
         }
 
         if(person.Project != null && person.Project.Deliverable is BuildingDesign bd) {
@@ -44,7 +44,7 @@ public class DesignAction : GoapAction, IProjectAction
         if (design.isComplete) {
             design = null;
             tempProject = null;
-            Debug.Log("nulling design action stuff");
+            person.Project = null;
             return true;
         }
         return false;

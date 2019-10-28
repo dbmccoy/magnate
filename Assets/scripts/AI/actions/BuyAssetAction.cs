@@ -38,18 +38,22 @@ public class BuyAssetAction : GoapAction
                     //Debug.Log(GoapAgent.prettyPrint(a) + " has precond " + c.Key + ":" + c.Value.ToString());
 
                     if(a is CommissionProjectAction cp) {
-                        Debug.Log(cp.tempProject.Deliverable);
+                        //Debug.Log(cp.tempProject.Deliverable);
                     }
 
                     if (c.Key.Contains("hasAsset")) {
 
                         Target = AssetBullitin.Instance.Query((IAsset)c.Value);
-                        Debug.Log(c.Value);
+                        if(Target != null) {
+                            Debug.Log(GoapAgent.prettyPrint(person.GetAgent().Goal) + a.GetType().ToString() + " " + c.Key + " adding " + Target.Asset.Name);
+                            addEffect(c.Key, c.Value);
+                        }
+                        
+
                     }
 
                     if (Target != null) {
-                        //Debug.Log(GoapAgent.prettyPrint(person.GetAgent().Goal) + a.GetType().ToString() + " " + c.Key + " adding " + Target.Asset.Name);
-                        addEffect(c.Key, c.Value);
+                        
                         break;
                     }
                 }
@@ -57,6 +61,9 @@ public class BuyAssetAction : GoapAction
 
 
             if(Target == null) {
+                return false;
+            }
+            if(Target.Asset == null) {
                 return false;
             }
 
@@ -75,11 +82,13 @@ public class BuyAssetAction : GoapAction
 
     public override bool isDone() {
         if(bid != null && bid.isAccepted) {
-            //Debug.Log("bought a thing " + Target.Asset.Name);
+            Debug.Log("bought a thing " + Target.Asset.Name);
 
             Target = null;
             bid = null;
             done = true;
+            Effects.Clear();
+            Preconditions.Clear();
 
         }
         return done;

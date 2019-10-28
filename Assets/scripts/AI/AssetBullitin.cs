@@ -11,6 +11,15 @@ public class AssetBullitin
     public List<AssetListing> Available = new List<AssetListing>();
 
     public void Add(AssetListing asset) {
+        if(asset == null) {
+            throw new System.Exception("trying to add a null listing to assetbullitin");
+        }
+        if(asset.Asset == null) {
+            throw new System.Exception("trying to add a listing with a null asset to assetbullitin");
+        }
+        if(asset.Asset.Name == null) {
+            throw new System.Exception("trying to add a listing without an asset name to assetbullitin");
+        }
         Available.Add(asset);
         //Debug.Log("adding " + asset.Asset.Name + " to bullitin for " + asset.Price);
         AddAssetToBullitinEvent.Invoke(asset);

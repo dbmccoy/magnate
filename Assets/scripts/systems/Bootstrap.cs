@@ -59,13 +59,13 @@ public class Bootstrap : MonoBehaviour {
         Mayor.AddComponent<CityGovSensor>();
         Mayor.Job = new Job(City, City.WorkUnits[0], Mayor.Skills, Mayor);
 
-        /*
+        
         Industrialist = NewPerson("Industrialist");
         Industrialist.AddComponent<IndustrySensor>();
         Industrialist.Job = new Job(Industrialist.Entity, Industrialist.CurrentUnit, Industrialist.Skills, Industrialist);
         Industrialist.AddComponent<CommissionProjectAction>();
         Industrialist.AddComponent<DevelopAction>();
-        */
+        
 
         Architect = NewPerson("Architect");
         Architect.AddComponent<ProjectSensor>();
@@ -93,13 +93,24 @@ public class Bootstrap : MonoBehaviour {
     {
 
         var reqs = BuildingConstructionAction.SkillReqs;
-
+        /*
         Person Richie = NewPerson("Richie");
+        Richie.Job = new Job(Richie.Entity, Richie.CurrentUnit, Richie.Skills, Richie);
+        Richie.AddComponent<DeveloperSensor>();
+        Richie.AddComponent<CommissionProjectAction>();
+        Richie.AddComponent<DevelopAction>();
+
+        Person Richie2 = NewPerson("Richie2");
+        Richie2.Job = new Job(Richie2.Entity, Richie2.CurrentUnit, Richie2.Skills, Richie2);
+        Richie2.AddComponent<DeveloperSensor>();
+        Richie2.AddComponent<CommissionProjectAction>();
+        Richie2.AddComponent<DevelopAction>();
+        */
 
         Person Buck = NewPerson("Buck");
         Buck.AssignUnit(Buck.Entity.WorkUnits[0]);
         Buck.Job = new Job(Buck.Entity, Buck.CurrentUnit, Buck.Skills, Buck);
-        Richie.Job = new Job(Richie.Entity, Richie.CurrentUnit, Richie.Skills, Richie);
+        
 
         /*
         Unit unit = new Unit(800, 2);
@@ -113,9 +124,7 @@ public class Bootstrap : MonoBehaviour {
 
         //var project = newBuilding.CreateProject();
 
-        Richie.AddComponent<DeveloperSensor>();
-        Richie.AddComponent<CommissionProjectAction>();
-        Richie.AddComponent<DevelopAction>();
+        
 
         Buck.AddComponent<BuildingConstructionAction>();
         Buck.AddComponent<WorkerSearchAction>();

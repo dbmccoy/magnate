@@ -73,7 +73,7 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
         }
 
         foreach (var i in tempProject.prereqs) {
-            Debug.Log(checkcount + "-" + tempProject.Deliverable.Name + " adding pre " + i.Key + ":" + i.Value.ToString());
+            //Debug.Log(checkcount + "-" + tempProject.Deliverable.Name + " adding pre " + i.Key + ":" + i.Value.ToString());
             addPrecondition(i.Key, i.Value);
         }
         foreach (var e in tempProject.effects) {
@@ -142,7 +142,13 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
 
         if (!tempProjectSequence.Contains(tempProject)) {
             Debug.Log("success! adding "+ tempProject.Deliverable.Name);
-            tempProjectSequence.Insert(0,tempProject);
+            var ss = "prereqs met: ";
+            foreach (var item in tempProject.prereqs) {
+                ss += item.Key + ":" + item.Value;
+            }
+            Debug.Log(ss);
+            //tempProjectSequence.Insert(0,tempProject);
+            tempProjectSequence.Add(tempProject);
             tempProject = null;
         }
         else {
@@ -157,7 +163,7 @@ public class CommissionProjectAction : GoapAction, IProjectAction {
 
     public override void addToFinalPlan(string id) {
         projectSequence = projectMatrix[id];
-        //Debug.Log("final adding " + id + " : sequence length = " + projectSequence.Count);
+        Debug.Log("final adding " + id + " : sequence length = " + projectSequence.Count);
     }
 
     public override bool isDone()

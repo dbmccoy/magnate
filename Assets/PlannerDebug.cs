@@ -22,17 +22,19 @@ public class PlannerDebug : MonoBehaviour
     void Update()
     {
         var s = "Goal: \n";
+        if(goal != null) {
+            foreach (var item in goal) {
+                s += item.Key + " > " + item.Value + "\n";
+            }
 
-        foreach (var item in goal) {
-            s += item.Key + " > " + item.Value + "\n";
+            s += "WorldState: \n";
+
+            foreach (var item in worldState) {
+                s += item.Key + " > " + item.Value + "\n";
+            }
+
+            text.text = s;
         }
-
-        s += "WorldState: \n";
-
-        foreach (var item in worldState) {
-            s += item.Key + " > " + item.Value + "\n";
-        }
-
-        text.text = s;
+        
     }
 }

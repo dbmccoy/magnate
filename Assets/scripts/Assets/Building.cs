@@ -12,10 +12,10 @@ public class Building : IBuilding {
     public int SquareFeet { get; private set; }
     public Lot Lot { get; private set; }
     public BuildingDesign Design { get; private set; }
+    public BuildingObj BuildingObj { get; private set; }
 
     public List<System.Tuple<Use, float>> Uses = new List<System.Tuple<Use, float>>();
 
-    public BuildingObj BuildingObj { get; private set; }
     public float PercentComplete { get; private set; }
     public bool isComplete { get; private set; }
 
@@ -59,6 +59,7 @@ public class Building : IBuilding {
 
         project.prereqs.Add(OwningEntity.ID+"hasAsset", Lot);
         project.prereqs.Add("hasBldDesign", true);
+
         project.effects.Add("hasBld", true);
 
         //project.prereqs.Add(Lot.Address + "isBuildable", true);
@@ -69,8 +70,11 @@ public class Building : IBuilding {
     public void StartConstruction()
     {
         Debug.Log("Starting construction " + Lot.Address);
-        GameObject obj = GameObject.Instantiate(Resources.Load("buildings/house_test_1"), Lot.transform) as GameObject;
-        BuildingObj = obj.GetComponent<BuildingObj>();
+        
+        //GameObject obj = GameObject.Instantiate(Resources.Load("buildings/house_test_1"), Lot.transform) as GameObject;
+        BuildingObj = GameObject.Instantiate(Design.BuildingObj);
+            
+        //obj.GetComponent<BuildingObj>();
         Lot.Building = this;
         BuildingObj.Init(this);
     }
@@ -125,6 +129,7 @@ public class BuildingDesign : IProjectable {
     public Project BuildingProject;
     private Project project;
     public Entity OwningEntity { get; set; }
+    public BuildingObj BuildingObj { get; private set; }
 
     public Project GetProject() {
         if (project != null) {
@@ -159,6 +164,13 @@ public class BuildingDesign : IProjectable {
         lot = l;
         floors = 1; //TODO:
         Name = l.Address + " design";
+
+        if(use == Use.Residential) {
+            BuildingObj = Resources.Load<BuildingObj>("buildings/house_test_1");
+        }
+        if(use == Use.Industrial) {
+            BuildingObj = Resources.Load<BuildingObj>("buildings/Factory");
+        }
     }
 
     public Building GetBuilding() {

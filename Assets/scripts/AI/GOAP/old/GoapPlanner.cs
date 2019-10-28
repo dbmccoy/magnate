@@ -135,10 +135,10 @@ public class GoapPlanner
                 if (inState(action.Effects, parent.state)) {
 
                     foreach (var item in action.Effects) {
-                        Debug.Log(item.Key + " : " + item.Value + " already in state");
+                        //Debug.Log(item.Key + " : " + item.Value + " already in state");
                     }
                     if(action.Effects.Count == 0) {
-                        Debug.Log(GoapAgent.prettyPrint(action)+" no effects");
+                        //Debug.Log(GoapAgent.prettyPrint(action)+" no effects");
                     }
                     continue;
                 }
@@ -152,11 +152,17 @@ public class GoapPlanner
                 while (n.parent != null){
                     if(n.parent.action != null) {
                         s += GoapAgent.prettyPrint(n.parent.action) + " > ";
+                        foreach (var item in n.parent.action.Effects) {
+                            s += "(" + item.Key + ":" + item.Value + ")";
+                        }
                     }
                     n = n.parent;
                 }
                 if(action != null) {
                     s += GoapAgent.prettyPrint(action);
+                    foreach (var item in action.Effects) {
+                        s += "(" + item.Key + ":" + item.Value + ")";
+                    }
                 }
 
                 if (inState(goal, currentState)) {
@@ -169,8 +175,13 @@ public class GoapPlanner
                         leaves.Add(node);
                         if(action is DevelopAction cp) {
                             Debug.Log(GoapAgent.prettyPrint(action) + leaves.Count + " adding leaf " + s);
+                            var s2 = "leaf has state:\n";
+                            foreach (var item in currentState) {
+                                s2 += item.Key + ":" + item.Value + "\n";
+                            }
+                            s2 += "______";
+                            //Debug.Log(s2);
                         }
-                        
                     }
 
 
@@ -255,7 +266,7 @@ public class GoapPlanner
 	 * Check that all items in 'test' are in 'state'. If just one does not match or is not there
 	 * then this returns false.
 	 */
-	public bool inState(HashSet<KeyValuePair<string,object>> test, HashSet<KeyValuePair<string,object>> state) {
+	public static bool inState(HashSet<KeyValuePair<string,object>> test, HashSet<KeyValuePair<string,object>> state) {
 		bool allMatch = true;
 		foreach (KeyValuePair<string,object> t in test) {
 			bool match = false;

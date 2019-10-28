@@ -15,7 +15,12 @@ public class ProjectSensor : Sensor {
 
     public override void Sense()
     {
-
+        if(person.Project == null) {
+            var p = ProjectBullitin.Instance.Available.Random();
+            if(p != null) {
+                EnqueProject(p);
+            }
+        }
     }
 
     public override List<LotMap> GetLotMaps() {
@@ -42,6 +47,9 @@ public class ProjectSensor : Sensor {
 
     public bool CanDeliver(Project project)
     {
+        if(person.Project != null) {
+            return false;
+        }
         Agent = GetComponent<GoapAgent>();
         person = GetComponent<Person>();
         var state = Agent.dataProvider.getWorldState();

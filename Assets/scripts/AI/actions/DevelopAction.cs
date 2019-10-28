@@ -40,8 +40,10 @@ public class DevelopAction : GoapAction {
     public override bool checkProceduralPrecondition(GameObject agent) {
 
         Entity = person.CurrentUnit.Entity;
+        addPrecondition("hasBld", true);
 
-        if(commission == null) {
+
+        if (commission == null) {
             commission = GetComponent<CommissionProjectAction>();
         }
 
@@ -58,8 +60,6 @@ public class DevelopAction : GoapAction {
                 }
             }
 
-            addPrecondition("hasBld", true);
-
             if (lot == null) {
                 return failProceduralPreconditions();
             }
@@ -67,7 +67,6 @@ public class DevelopAction : GoapAction {
 
         if (lot != null) {
             addPrecondition(person.CurrentEntity.ID + "hasAsset", lot);
-            addPrecondition("hasBld", true);
 
             if(lot.Building != null) {
                 return failProceduralPreconditions();
@@ -164,11 +163,14 @@ public class DevelopAction : GoapAction {
     protected override void hardReset() {
         lot = null;
         Preconditions.Clear();
+        design = null;
+        building = null;
         Effects.Clear();
         Project = null;
         bldProj = null;
         designProj = null;
         reqs = null;
+        map = null;
         inProgress = false;
     }
 }

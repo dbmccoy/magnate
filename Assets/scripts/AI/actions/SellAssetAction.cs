@@ -24,11 +24,6 @@ public class SellAssetAction : GoapAction
         person = GetComponent<Person>();
     }
 
-    public void SetAsset(IAsset a) {
-        Asset = a;
-        ToSell = a.Name;
-    }
-
     AssetBid bid;
 
     public override bool checkProceduralPrecondition(GameObject agent) {
@@ -59,7 +54,6 @@ public class SellAssetAction : GoapAction
 
     public override bool isDone() {
         if (complete) {
-            Debug.Log("completed the deal");
             inProgress = false;
             complete = false;
             return true;
